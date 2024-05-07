@@ -4,27 +4,43 @@ from efficient_kan import KAN
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision
+import torchvision, torchtext
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from sklearn.feature_extraction.text import CountVectorizer
 
-# Load MNIST
-transform = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
-)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-trainset = torchvision.datasets.FashionMNIST(
-    root="./data", train=True, download=True, transform=transform
-)
-valset = torchvision.datasets.FashionMNIST(
-    root="./data", train=False, download=True, transform=transform
-)
-trainloader = DataLoader(trainset, batch_size=64, shuffle=True)
-valloader = DataLoader(valset, batch_size=64, shuffle=False)
+from datasets import load_dataset
+
+dataset = load_dataset('glue', 'mrpc')
+
+train_set = dataset['train']
+
+val_set = dataset['validation']
+
+test_set = dataset['test']
+
+train_data = [item['sentence1'] + ' ### ' + item['sentence2']  for item in train_set]
+val_data = [item['sentence1'] + ' ### ' + item['sentence2']  for item in val_set]
+
+vectorizer = CountVectorizer(max_features = 5000)
+train_data = vectorizer.fit_transform(train_data)
+
+print(train_data[0])
+
+train_data = [[data, item['label']] for data, item in zip(train_data, train_set)]
+
+val_data = vectorizer.fit_transform(val_data)
+val_data = [[data, item['label']] for data, item in zip(val_data, val_set)]
+
+trainloader = DataLoader(train_data, batch_size=64, shuffle=True)
+valloader = DataLoader(val_data, batch_size=64, shuffle=False)
+
 
 # Define model
-model = KAN([28 * 28, 64, 10])
+model = KAN([28 * 28, 64, 2])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 # Define optimizer
@@ -34,6 +50,7 @@ scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
 # Define loss
 criterion = nn.CrossEntropyLoss()
+best_accuracy = 0
 for epoch in range(10):
     # Train
     model.train()
@@ -62,6 +79,10 @@ for epoch in range(10):
             )
     val_loss /= len(valloader)
     val_accuracy /= len(valloader)
+    
+    if (val_accuracy > best_accuracy):
+        best_accuracy = val_accuracy
+        torch.save(model, 'model.pth')
 
     # Update learning rate
     scheduler.step()
@@ -69,3 +90,35 @@ for epoch in range(10):
     print(
         f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}"
     )
+
+
+'''transform = transforms.Compose(
+    [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
+)
+
+trainset = torchvision.datasets.FashionMNIST(
+    root="./data", train=True, download=True, transform=transform
+)
+print(trainset[0])
+valset = torchvision.datasets.FashionMNIST(
+    root="./data", train=False, download=True, transform=transform
+)
+trainloader = DataLoader(trainset, batch_size=64, shuffle=True)
+valloader = DataLoader(valset, batch_size=64, shuffle=False)'''
+
+'''model = torch.load('model.pth')
+model.eval()
+with torch.no_grad():
+    for images, labels in valloader:
+        
+        images = images.view(-1, 28 * 28).to(device)
+        output = model(images)
+        
+        print('labels: ', labels)
+        print('output: ', output.argmax(dim=1))
+            
+        #val_accuracy += (
+        #    (output.argmax(dim=1) == labels.to(device)).float().mean().item()
+        #)
+
+'''
