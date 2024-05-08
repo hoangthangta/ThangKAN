@@ -15,6 +15,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 from datasets import load_dataset
 from sklearn.preprocessing import normalize
 
+from transformers import BertModel, BertTokenizer
+
+
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 dataset = load_dataset('glue', 'mrpc')
@@ -37,6 +41,86 @@ all_data = train_data + val_data + test_data
 all_labels = train_labels + val_labels + test_labels
 df_labels = pd.DataFrame(all_labels, columns=['label'])
 
+
+# BERT
+tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+model = BertModel.from_pretrained('bert-base-cased')
+
+def create_data_loader(dataset, tokenizer, max_len, batch_size = 4):
+
+    ds = PreparedDataset(texts=np.array(dataset),
+                         tokenizer=tokenizer,
+                         max_len=max_len)
+    return DataLoader(ds, batch_size=batch_size, num_workers=4)
+    
+class PreparedDataset():
+    def __init__(self, texts, tokenizer, max_len):
+        self.texts = texts
+        self.tokenizer = tokenizer
+        self.max_len = max_len
+
+    def __len__(self):
+        return len(self.texts)
+
+    def __getitem__(self, item):
+        text = str(self.texts[item])
+        encoding = self.tokenizer.encode_plus(
+            text,
+            add_special_tokens=True,
+            max_length=self.max_len,
+            return_token_type_ids=False,
+            #pad_to_max_length=True,
+            padding = "max_length",
+            return_attention_mask=True,
+            truncation=True,
+            return_tensors='pt',
+            )
+
+        return {
+                'text': text,
+                'input_ids': encoding['input_ids'].flatten(),
+                'attention_mask': encoding['attention_mask'].flatten()
+            }
+
+
+all_data_loader = create_data_loader(all_data, tokenizer, 512, 4)
+
+i = 0
+emb_data = []
+for d in all_data_loader:
+        
+    sys.stdout.write('Training batch: %d/%d \r' % (i, len(data_loader)))
+    #sys.stdout.flush()
+        
+    i = i + 1
+    input_ids = d["input_ids"].to(device)
+    attention_mask = d["attention_mask"].to(device)
+    categories = d["categories"].to(device)
+    outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+    emb_data += outputs['last_hidden_state']
+
+print('emb_data: ', len(emb_data))
+'''
+text = tokenizer.encode_plus(
+            all_data[0],
+            add_special_tokens=True,
+            max_length=512,
+            return_token_type_ids=False,
+            #pad_to_max_length=True,
+            padding = "max_length",
+            return_attention_mask=True,
+            truncation=True,
+            return_tensors='pt',
+            )
+
+print('text: ', text)
+
+input_ids = text["input_ids"].to(device)
+attention_mask = text["attention_mask"].to(device)
+outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+print('outputs: ', outputs['last_hidden_state'], len(outputs['last_hidden_state']))'''
+
+''''
 # BOW
 n_features = 100
 vectorizer = CountVectorizer(max_features = n_features*n_features) # 20*20
@@ -71,6 +155,7 @@ i = 0
 for item in trainloader:
     print(item[0].size())
     if (i == 0): break
+'''
 
 # define KAN model
 model = KAN([n_features*n_features, 64, 2])
