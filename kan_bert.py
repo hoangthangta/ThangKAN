@@ -3,6 +3,8 @@ from efficient_kan import KAN
 import pandas as pd
 import numpy as np
 
+import sys
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -51,7 +53,9 @@ def create_data_loader(dataset, tokenizer, max_len, batch_size = 4):
     ds = PreparedDataset(texts=np.array(dataset),
                          tokenizer=tokenizer,
                          max_len=max_len)
-    return DataLoader(ds, batch_size=batch_size, num_workers=4)
+    
+    
+    return DataLoader(ds, batch_size=batch_size, num_workers=1)
     
 class PreparedDataset():
     def __init__(self, texts, tokenizer, max_len):
@@ -83,23 +87,24 @@ class PreparedDataset():
             }
 
 
-all_data_loader = create_data_loader(all_data, tokenizer, 512, 4)
+if __name__ == '__main__':
+    all_data_loader = create_data_loader(all_data[0:100], tokenizer, 512, 4)
 
-i = 0
-emb_data = []
-for d in all_data_loader:
+    i = 0
+    emb_data = []
+    for d in all_data_loader:
         
-    sys.stdout.write('Training batch: %d/%d \r' % (i, len(data_loader)))
-    #sys.stdout.flush()
+        sys.stdout.write('Training batch: %d/%d \r' % (i, len(all_data_loader)))
+        #sys.stdout.flush()
         
-    i = i + 1
-    input_ids = d["input_ids"].to(device)
-    attention_mask = d["attention_mask"].to(device)
-    categories = d["categories"].to(device)
-    outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-    emb_data += outputs['last_hidden_state']
+        i = i + 1
+        input_ids = d["input_ids"].to(device)
+        attention_mask = d["attention_mask"].to(device)
+        outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+        emb_data += outputs['last_hidden_state']
+        print(len(outputs['last_hidden_state']))
 
-print('emb_data: ', len(emb_data))
+    print('emb_data: ', len(emb_data))
 '''
 text = tokenizer.encode_plus(
             all_data[0],
@@ -156,7 +161,7 @@ for item in trainloader:
     print(item[0].size())
     if (i == 0): break
 '''
-
+'''
 # define KAN model
 model = KAN([n_features*n_features, 64, 2])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -208,7 +213,7 @@ for epoch in range(10):
     print(
         f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}"
     )
-
+'''
 '''model = torch.load('model.pth')
 model.eval()
 
