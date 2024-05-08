@@ -19,8 +19,6 @@ from sklearn.preprocessing import normalize
 
 from transformers import BertModel, BertTokenizer
 
-
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 dataset = load_dataset('glue', 'mrpc')
@@ -87,24 +85,28 @@ class PreparedDataset():
             }
 
 
-if __name__ == '__main__':
-    all_data_loader = create_data_loader(all_data[0:100], tokenizer, 512, 4)
-
+def get_embeddings(dataset, model):
+    
     i = 0
-    emb_data = []
-    for d in all_data_loader:
-        
+    embed_data = []
+    for d in dataset:
         sys.stdout.write('Training batch: %d/%d \r' % (i, len(all_data_loader)))
         #sys.stdout.flush()
-        
         i = i + 1
         input_ids = d["input_ids"].to(device)
         attention_mask = d["attention_mask"].to(device)
         outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-        emb_data += outputs['last_hidden_state']
+        embed_data.append(outputs['last_hidden_state'])
         print(len(outputs['last_hidden_state']))
+    print('embed_data: ', len(embed_data))
+    
+    return embed_data
+    
+train_data_loader = create_data_loader(train_data[0:20], tokenizer, 512, 4)
+val_data_loader = create_data_loader(val_data[0:9], tokenizer, 512, 4)
+embed_train = get_embeddings(train_data_loader, model)
+embed_val = get_embeddings(val_data_loader, model)
 
-    print('emb_data: ', len(emb_data))
 '''
 text = tokenizer.encode_plus(
             all_data[0],
@@ -125,43 +127,26 @@ attention_mask = text["attention_mask"].to(device)
 outputs = model(input_ids=input_ids, attention_mask=attention_mask)
 print('outputs: ', outputs['last_hidden_state'], len(outputs['last_hidden_state']))'''
 
-''''
-# BOW
-n_features = 100
-vectorizer = CountVectorizer(max_features = n_features*n_features) # 20*20
-BOW = vectorizer.fit_transform(all_data)
-
-from sklearn.model_selection import train_test_split
-x_train, x_test, y_train, y_test = train_test_split(BOW, np.asarray(df_labels), test_size = 2133, train_size = 3668, random_state=0)
-x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, train_size = 408, random_state=0)
-
-print('train shape: ', x_train.shape, y_train.shape)
-print('val shape: ', x_val.shape, y_val.shape)
-print('test shape: ', x_test.shape, y_test.shape)
-
-# concat data + labels
-#x.toarray().astype(np.float32), torch.from_numpy([x.toarray().astype(np.float32)])
-
+# embed_train, embed_val
 final_train = []
-for x, y in zip(x_train, y_train): final_train.append( (x.toarray().astype(np.float32).reshape(1, n_features, n_features), int(y)) )
+for x, y in zip(embed_train, train_labels): final_train.append( (x.toarray().astype(np.float32).reshape(1, n_features, n_features), int(y)) )
 
 final_val = []
-for x, y in zip(x_val, y_val): final_val.append( (x.toarray().astype(np.float32).reshape(1, n_features, n_features), int(y)) )
+for x, y in zip(embed_val, val_labels): final_val.append( (x.toarray().astype(np.float32).reshape(1, n_features, n_features), int(y)) )
 
-final_test = []
-for x, y in zip(x_test, y_test): final_test.append( (x.toarray().astype(np.float32).reshape(1, n_features, n_features), int(y)) )
+'''final_test = []
+for x, y in zip(x_test, y_test): final_test.append( (x.toarray().astype(np.float32).reshape(1, n_features, n_features), int(y)) )'''
 
 # load data
 trainloader = DataLoader(final_train, batch_size=64, shuffle=True)
 valloader = DataLoader(final_val, batch_size=64, shuffle=False)
-testloader = DataLoader(final_test, batch_size=64, shuffle=False)
+#testloader = DataLoader(final_test, batch_size=64, shuffle=False)
 
 i = 0 
 for item in trainloader:
     print(item[0].size())
     if (i == 0): break
-'''
-'''
+
 # define KAN model
 model = KAN([n_features*n_features, 64, 2])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -213,7 +198,7 @@ for epoch in range(10):
     print(
         f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}"
     )
-'''
+
 '''model = torch.load('model.pth')
 model.eval()
 
