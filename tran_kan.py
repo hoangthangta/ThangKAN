@@ -128,6 +128,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
         model.train()
         em_model.eval() 
         
+        train_accuracy = 0
         with tqdm(trainloader) as pbar:
             for i, items in enumerate(pbar):
                 texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
@@ -137,8 +138,9 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
                 loss = criterion(output, labels.to(device))
                 loss.backward()
                 optimizer.step()
-                accuracy = (output.argmax(dim=1) == labels.to(device)).float().mean()
-                pbar.set_postfix(loss=loss.item(), accuracy=accuracy.item(), lr=optimizer.param_groups[0]['lr'])     
+                train_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
+                #accuracy = (output.argmax(dim=1) == labels.to(device)).float().mean()
+                pbar.set_postfix(loss=loss.item(), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])     
 
         # validation
         model.eval()
@@ -259,5 +261,7 @@ if __name__ == "__main__":
     
 # ['rte', 'wnli', 'mrpc', 'cola']
 # python tran_kan.py --mode "train" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 5 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2
+
+# python tran_kan.py --mode "train" --em_model_name "microsoft/deberta-v3-large" --ds_name "wnli" --epochs 5 --batch_size 4 --max_len 512 --n_size 1 --m_size 1024 --n_hidden 64 --n_class 2
 
 # python tran_kan.py --mode "test" --em_model_name "bert-base-cased" --model_path "bart-base\checkpoint-1321" --test_path "dataset/test.json" --test_batch_size 4 --max_source_length 256 --min_target_length 1
