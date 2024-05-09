@@ -128,6 +128,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
         model.train()
         em_model.eval() 
         
+        train_loss = 0
         train_accuracy = 0
         with tqdm(trainloader) as pbar:
             for i, items in enumerate(pbar):
@@ -138,9 +139,9 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
                 loss = criterion(output, labels.to(device))
                 loss.backward()
                 optimizer.step()
+                train_loss += criterion(output, labels.to(device)).item()
                 train_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
-                #accuracy = (output.argmax(dim=1) == labels.to(device)).float().mean()
-                pbar.set_postfix(loss=loss.item(), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])     
+                pbar.set_postfix(train_loss=train_loss/len(trainloader), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])     
 
         # validation
         model.eval()
@@ -166,8 +167,10 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
 
         # update learning rate
         scheduler.step()
-
+        
+        print(f"Epoch {epoch + 1}, Train Loss: {train_loss}, Train Accuracy: {train_accuracy}")
         print(f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}")
+        
         torch.cuda.empty_cache()
         gc.collect()
 
