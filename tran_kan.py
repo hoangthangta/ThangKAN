@@ -142,7 +142,10 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
                 train_loss += criterion(output, labels.to(device)).item()
                 train_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
                 pbar.set_postfix(train_loss=train_loss/len(trainloader), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])     
-
+        
+        train_loss /= len(trainloader)
+        train_accuracy /= len(trainloader)
+        
         # validation
         model.eval()
         val_loss = 0
