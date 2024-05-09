@@ -166,6 +166,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
         
         if (val_accuracy > best_accuracy):
             best_accuracy = val_accuracy
+            # train_history.json??
             torch.save(model, 'output/' + saved_model_name)
 
         # update learning rate
