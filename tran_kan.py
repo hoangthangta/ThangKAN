@@ -25,7 +25,7 @@ def create_data_loader(ds_name, dataset, tokenizer, max_len = 512, batch_size = 
 
     texts, labels = [], []
     for item in dataset:
-        print(item)
+        #print(item)
         text = ''
         if (ds_name in ['mrpc', 'rte', 'wnli']):
             text = '[CLS] ' + item['sentence1'] + ' [SEP] ' + item['sentence2'] + ' [SEP] ' # for BERT
@@ -105,7 +105,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
                 epochs = 20, n_size = 1, m_size = 768, n_hidden = 64, n_class = 2, embed_type = 'pool'):
     
     # define KAN model
-    model = KAN([n_size*m_size, n_hidden, n_class])
+    model = KAN([n_size*m_size, 384, 128, 32, n_class]) # deeper network = better?
     model.to(device)
     # define optimizer
     optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
@@ -126,7 +126,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
     for epoch in range(epochs):
         # train
         model.train()
-        em_model.eval() 
+        em_model.train() 
         
         train_loss = 0
         train_accuracy = 0
@@ -139,7 +139,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
                 loss = criterion(output, labels.to(device))
                 loss.backward()
                 optimizer.step()
-                train_loss += criterion(output, labels.to(device)).item()
+                train_loss += loss.item()
                 train_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
                 pbar.set_postfix(train_loss=train_loss/len(trainloader), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])     
         
@@ -148,6 +148,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
         
         # validation
         model.eval()
+        em_model.eval() 
         val_loss = 0
         val_accuracy = 0
         
@@ -212,7 +213,7 @@ def prepare_dataset(ds_name = 'mrpc'):
 def build_data_loader(ds_name, em_model_name, max_len = 512, batch_size = 4, test_only = False):
     
     dataset = prepare_dataset(ds_name)
-    print('1st example of ' + ds_name + ':', dataset['train'][0])
+    print('First example :', dataset['train'][0])
     
     tokenizer = AutoTokenizer.from_pretrained(em_model_name)
     
@@ -267,7 +268,7 @@ if __name__ == "__main__":
     main(args)
     
 # ['rte', 'wnli', 'mrpc', 'cola']
-# python tran_kan.py --mode "train" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 5 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2
+# python tran_kan.py --mode "train" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2
 
 # python tran_kan.py --mode "train" --em_model_name "microsoft/deberta-v3-large" --ds_name "wnli" --epochs 5 --batch_size 4 --max_len 512 --n_size 1 --m_size 1024 --n_hidden 64 --n_class 2
 
