@@ -85,7 +85,7 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
         if (embed_type == 'hidden'): # last hidden state
             outputs = em_model(input_ids=input_ids, attention_mask=attention_mask)
             embeddings = outputs['last_hidden_state']
-            #embeddings = torch.sum(embeddings, (1), keepdim = True) # require memory 
+            embeddings = torch.sum(embeddings, (1), keepdim = True) # require memory 
             embeddings = embeddings.view(-1, n_size*m_size)
         elif (embed_type == 'weight'): # weight
             embedding_matrix = model.embeddings.word_embeddings.weight
@@ -105,7 +105,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
                 epochs = 20, n_size = 1, m_size = 768, n_hidden = 64, n_class = 2, embed_type = 'pool'):
     
     # define KAN model
-    model = KAN([n_size*m_size, 384, 128, 32, n_class]) # deeper network = better?
+    model = KAN([n_size*m_size, n_hidden, n_class]) # deeper network = better?
     model.to(device)
     # define optimizer
     optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
