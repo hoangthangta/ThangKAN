@@ -85,7 +85,7 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
         if (embed_type == 'hidden'): # last hidden state
             outputs = em_model(input_ids=input_ids, attention_mask=attention_mask)
             embeddings = outputs['last_hidden_state']
-            embeddings = torch.sum(embeddings, (1), keepdim = True) # require memory 
+            #embeddings = torch.sum(embeddings, (1), keepdim = True) # require memory 
             embeddings = embeddings.view(-1, n_size*m_size)
         elif (embed_type == 'weight'): # weight
             embedding_matrix = model.embeddings.word_embeddings.weight
