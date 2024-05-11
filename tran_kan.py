@@ -214,6 +214,7 @@ def build_data_loader(ds_name, em_model_name, max_len = 512, batch_size = 4, tes
     
     dataset = prepare_dataset(ds_name)
     print('First example :', dataset['train'][0])
+    print('First example :', dataset['validation'][0])
     
     tokenizer = AutoTokenizer.from_pretrained(em_model_name)
     
