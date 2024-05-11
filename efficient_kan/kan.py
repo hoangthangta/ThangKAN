@@ -54,7 +54,7 @@ class KANLinear(torch.nn.Module):
 
     def reset_parameters(self):
         #torch.nn.init.kaiming_uniform_(self.base_weight, a=math.sqrt(5) * self.scale_base)
-        torch.nn.init.xavier_uniform_(self.base_weight, gain=math.sqrt(6) * self.scale_base)
+        torch.nn.init.xavier_uniform_(self.base_weight, gain=self.scale_base) # similar to MLP
         with torch.no_grad():
             noise = (
                 (
@@ -74,7 +74,7 @@ class KANLinear(torch.nn.Module):
             if self.enable_standalone_scale_spline:
                 # torch.nn.init.constant_(self.spline_scaler, self.scale_spline)
                 # torch.nn.init.kaiming_uniform_(self.spline_scaler, a=math.sqrt(5) * self.scale_spline)
-                torch.nn.init.xavier_uniform_(self.spline_scaler, gain=math.sqrt(6) * self.scale_spline)
+                torch.nn.init.xavier_uniform_(self.spline_scaler, gain=self.scale_spline)
     def b_splines(self, x: torch.Tensor):
         """
         Compute the B-spline bases for the given input tensor.
