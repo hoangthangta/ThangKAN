@@ -154,13 +154,14 @@ class KANLinear(torch.nn.Module):
         assert x.dim() == 2 and x.size(1) == self.in_features
 
         base_output = F.linear(self.base_activation(x), self.base_weight)
-        base_output = F.sigmoid(base_output)
+        #base_output = F.sigmoid(base_output)
         spline_output = F.linear(
             self.b_splines(x).view(x.size(0), -1),
             self.scaled_spline_weight.view(self.out_features, -1),
         )
-        spline_output = F.sigmoid(spline_output)
-        return base_output + spline_output
+        output = F.linear(base_output, spline_output)
+        #spline_output = F.sigmoid(spline_output)
+        return boutput
 
     @torch.no_grad()
     def update_grid(self, x: torch.Tensor, margin=0.01):
