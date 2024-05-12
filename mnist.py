@@ -16,12 +16,22 @@ transform = transforms.Compose(
 trainset = torchvision.datasets.MNIST(
     root="./data", train=True, download=True, transform=transform
 )
+
 valset = torchvision.datasets.MNIST(
     root="./data", train=False, download=True, transform=transform
 )
+
 trainloader = DataLoader(trainset, batch_size=64, shuffle=True)
+for item in trainloader:
+
+    print(item[0].size())
+       
+    print('-'*50)
+    
 valloader = DataLoader(valset, batch_size=64, shuffle=False)
 
+
+'''
 # Define model
 model = KAN([28 * 28, 64, 10])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -38,7 +48,11 @@ for epoch in range(10):
     model.train()
     with tqdm(trainloader) as pbar:
         for i, (images, labels) in enumerate(pbar):
+            print('images: ', images)
             images = images.view(-1, 28 * 28).to(device)
+            
+            #print(images, images.size())
+            #break
             optimizer.zero_grad()
             output = model(images)
             loss = criterion(output, labels.to(device))
@@ -68,3 +82,4 @@ for epoch in range(10):
     print(
         f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}"
     )
+'''

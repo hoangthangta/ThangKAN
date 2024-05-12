@@ -1,15 +1,12 @@
-import numpy as np
-from scipy.sparse import csr_matrix
+import torch.nn as nn
 import torch
 
-__author__ = 'Andrea Esuli'
 
-Acsr = csr_matrix([[1, 2, 0], [0, 0, 3], [4, 0, 5]])
-print('Acsr',Acsr)
+x, y = torch.rand(64, 100), torch.rand(64, 100)
 
-Acoo = Acsr.tocoo()
-print('Acoo',Acoo)
+print(x, x.shape)
+print(y, y.shape)
 
-Apt = torch.sparse.LongTensor(torch.LongTensor([Acoo.row.tolist(), Acoo.col.tolist()]),
-                              torch.LongTensor(Acoo.data.astype(np.int32)))
-print('Apt',Apt)
+z = torch.cat((x, y), -1)
+
+print(z, z.shape)

@@ -1,0 +1,12 @@
+Network parameters
+-------------------
+
+grid_size: 500, 1000
+The grid number G also has a subtle effect on interpretability. When G is too small, because
+each one of activation function is not very expressive, the network tends to use the ensembling
+strategy, making interpretation harder
+G is the number of grid intervals
+
+spline_order = usually 3
+
+hidden neurons increase -> accuracy increase?

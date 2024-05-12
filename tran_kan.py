@@ -1,8 +1,8 @@
 from datasets import load_dataset
-from efficient_kan import KAN
+from models import KAN, CategoryClassifier
 from sklearn.preprocessing import normalize
 from sklearn.feature_extraction.text import CountVectorizer
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer, get_linear_schedule_with_warmup
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -26,13 +26,13 @@ def create_data_loader(ds_name, dataset, tokenizer, max_len = 512, batch_size = 
 
     texts, labels = [], []
     for item in dataset:
-        #print(item)
+       
         text = ''
         if (ds_name in ['mrpc', 'rte', 'wnli']):
-            #text = '[CLS] ' + item['sentence1'] + ' [SEP] ' + item['sentence2'] + ' [SEP] ' # for BERT
-            text = item['sentence1'] + ' ### ' + item['sentence2']
+            text = item['sentence1'] + ' [SEP] ' + item['sentence2']
+ 
         if (ds_name == 'cola'):
-            text = item['sentence']
+            text = item['sentence1']
         texts.append(text)
         
         try: labels.append(item['label'])
@@ -76,18 +76,20 @@ class TextDataset():
                 'label': torch.tensor(label, dtype=torch.long)
                }
 
-def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
+def get_embeddings(data, n_size = 512, m_size = 768, embed_type = 'pool'):
     
     with torch.no_grad():
         input_ids = data["input_ids"].to(device)
         attention_mask = data["attention_mask"].to(device)
-        
+
         embeddings = {}
         if (embed_type == 'hidden'): # last hidden state
             outputs = em_model(input_ids=input_ids, attention_mask=attention_mask)
             embeddings = outputs['last_hidden_state']
-            embeddings = torch.sum(embeddings, (1), keepdim = True) # require memory 
+            #embeddings = torch.sum(embeddings, (1), keepdim = True) # require memory 
             embeddings = embeddings.view(-1, n_size*m_size)
+            print(embeddings.shape)
+            
         elif (embed_type == 'weight'): # weight
             embedding_matrix = model.embeddings.word_embeddings.weight
             embeddings = embedding_matrix[input_ids]
@@ -99,8 +101,8 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
             embeddings = outputs[-1]
             
             # normalize
-            std_mean = torch.std_mean(embeddings, dim=1, keepdim=True)
-            embeddings = (embeddings - std_mean[1])/std_mean[0]
+            #std_mean = torch.std_mean(embeddings, dim=1, keepdim=True)
+            #embeddings = (embeddings - std_mean[1])/std_mean[0]
 
         #del outputs
         return embeddings
@@ -109,13 +111,29 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
 def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-base-cased', \
                 epochs = 20, n_size = 1, m_size = 768, n_hidden = 64, n_class = 2, embed_type = 'pool'):
     
+    # Each KAN is initialized to have G = 3, trained with LBFGS, with increasing number of grid points 
+    # every 200 steps to cover G = {3, 5, 10, 20, 50, 100, 200}
+    
+    print('trainloader: ', trainloader)
+    print('valloader: ', valloader)
+
     # define KAN model
-    model = KAN([n_size*m_size, n_hidden, n_class]) # deeper network = better?
+    #model = KAN([n_size*m_size, n_hidden, n_class]) # deeper network = better
+    model = CategoryClassifier(n_class, em_model_name)
     model.to(device)
     # define optimizer
-    optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    #optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     # define learning rate scheduler
-    scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
+    #scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
+
+    total_steps = len(trainloader) * epochs
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer,
+        num_warmup_steps=0,
+        num_training_steps=total_steps
+        )
+        
     # define loss
     criterion = nn.CrossEntropyLoss()
     best_accuracy = 0
@@ -131,38 +149,61 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
     for epoch in range(epochs):
         # train
         model.train()
-        em_model.train() 
+        #em_model.train() 
         
         train_loss = 0
         train_accuracy = 0
         with tqdm(trainloader) as pbar:
             for i, items in enumerate(pbar):
-                texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
+                #texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                 labels = items['label']
-                optimizer.zero_grad()
-                output = model(texts)
+                
+                input_ids = items["input_ids"].to(device)
+                attention_mask = items["attention_mask"].to(device)
+                output = model(input_ids=input_ids, attention_mask=attention_mask)
+                
+                #print('output: ', output)
+               
+                #output = model(texts)
                 loss = criterion(output, labels.to(device))
                 loss.backward()
+                nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                 optimizer.step()
+                scheduler.step()
+                optimizer.zero_grad()
+                
                 train_loss += loss.item()
                 train_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
                 pbar.set_postfix(train_loss=train_loss/len(trainloader), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])     
+
         
         train_loss /= len(trainloader)
         train_accuracy /= len(trainloader)
         
+        # update learning rate
+        #scheduler.step() 
+        
+        '''try:
+            model.grid_size1 = grid_list[epoch]
+        except:
+            model.grid_size1 += 10'''
+
+        
         # validation
         model.eval()
-        em_model.eval() 
+        #em_model.eval() 
         val_loss = 0
         val_accuracy = 0
         
         with torch.no_grad():
             with tqdm(valloader) as pbar:
                 for i, items in enumerate(pbar):
-                    texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
+                    #texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     labels = items['label']
-                    output = model(texts)
+                    input_ids = items["input_ids"].to(device)
+                    attention_mask = items["attention_mask"].to(device)
+                    output = model(input_ids=input_ids, attention_mask=attention_mask)
+                    #output = model(texts)
                     val_loss += criterion(output, labels.to(device)).item()
                     val_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
                     pbar.set_postfix(val_loss=val_loss/len(valloader), val_accuracy=val_accuracy/len(valloader))
@@ -174,15 +215,12 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
             best_accuracy = val_accuracy
             # train_history.json??
             torch.save(model, 'output/' + saved_model_name)
-
-        # update learning rate
-        scheduler.step()
-        
+          
         print(f"Epoch {epoch + 1}, Train Loss: {train_loss}, Train Accuracy: {train_accuracy}")
         print(f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}")
         
-        torch.cuda.empty_cache()
-        gc.collect()
+        #torch.cuda.empty_cache()
+        #gc.collect()
 
 
 def infer_kan(test_loader, model_path = 'model.pth', n_size = 1, m_size = 768):
@@ -231,7 +269,7 @@ def build_data_loader(ds_name, em_model_name, max_len = 512, batch_size = 4, tes
     test_loader = create_data_loader(ds_name, dataset['test'], tokenizer, max_len = max_len, batch_size = batch_size)
     if (test_only == False):
         train_loader = create_data_loader(ds_name, dataset['train'], tokenizer, max_len = max_len, \
-                                            batch_size = batch_size, shuffle = True)
+                                            batch_size = batch_size, shuffle = False)
         val_loader = create_data_loader(ds_name, dataset['validation'], tokenizer, \
                                             max_len = max_len, batch_size = batch_size)
     
@@ -241,7 +279,7 @@ def main(args):
     if (args.mode == 'train'):
         loader = build_data_loader(ds_name = args.ds_name, em_model_name = args.em_model_name, \
                                         max_len = args.max_len, batch_size = args.batch_size)
-        train_kan(loader['train'], loader['validation'], ds_name = args.ds_name, em_model_name = args.em_model_name, \
+        train_kan(loader['train'], loader['train'], ds_name = args.ds_name, em_model_name = args.em_model_name, \
                     epochs = args.epochs, n_size = args.n_size, m_size = args.m_size, n_hidden = args.n_hidden, \
                     n_class = args.n_class)
 
@@ -274,7 +312,7 @@ if __name__ == "__main__":
     main(args)
     
 # ['rte', 'wnli', 'mrpc', 'cola']
-#python tran_kan.py --mode "train" --em_model_name "Supabase/gte-small" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 384 --n_hidden 64 --n_class 2
+#python tran_kan.py --mode "train" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 4 --n_class 2
 
 # python tran_kan.py --mode "train" --em_model_name "microsoft/deberta-v3-large" --ds_name "wnli" --epochs 5 --batch_size 4 --max_len 512 --n_size 1 --m_size 1024 --n_hidden 64 --n_class 2
 
