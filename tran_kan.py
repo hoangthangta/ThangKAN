@@ -14,6 +14,7 @@ import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchvision.transforms as transforms
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = torch.device("cpu")
@@ -28,8 +29,8 @@ def create_data_loader(ds_name, dataset, tokenizer, max_len = 512, batch_size = 
         #print(item)
         text = ''
         if (ds_name in ['mrpc', 'rte', 'wnli']):
-            text = '[CLS] ' + item['sentence1'] + ' [SEP] ' + item['sentence2'] + ' [SEP] ' # for BERT
-            #text = item['sentence1'] + ' ### ' + item['sentence2']
+            #text = '[CLS] ' + item['sentence1'] + ' [SEP] ' + item['sentence2'] + ' [SEP] ' # for BERT
+            text = item['sentence1'] + ' ### ' + item['sentence2']
         if (ds_name == 'cola'):
             text = item['sentence']
         texts.append(text)
@@ -96,8 +97,12 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
         else: # pool
             outputs = em_model(input_ids=input_ids, attention_mask=attention_mask)
             embeddings = outputs[-1]
-        
-        del outputs
+            
+            # normalize
+            std_mean = torch.std_mean(embeddings, dim=1, keepdim=True)
+            embeddings = (embeddings - std_mean[1])/std_mean[0]
+
+        #del outputs
         return embeddings
 
     
@@ -161,7 +166,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
                     val_loss += criterion(output, labels.to(device)).item()
                     val_accuracy += ((output.argmax(dim=1) == labels.to(device)).float().mean().item())
                     pbar.set_postfix(val_loss=val_loss/len(valloader), val_accuracy=val_accuracy/len(valloader))
-                    del output
+                    #del output
         val_loss /= len(valloader)
         val_accuracy /= len(valloader)
         
@@ -269,7 +274,7 @@ if __name__ == "__main__":
     main(args)
     
 # ['rte', 'wnli', 'mrpc', 'cola']
-# python tran_kan.py --mode "train" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2
+#python tran_kan.py --mode "train" --em_model_name "Supabase/gte-small" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 384 --n_hidden 64 --n_class 2
 
 # python tran_kan.py --mode "train" --em_model_name "microsoft/deberta-v3-large" --ds_name "wnli" --epochs 5 --batch_size 4 --max_len 512 --n_size 1 --m_size 1024 --n_hidden 64 --n_class 2
 
