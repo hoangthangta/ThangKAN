@@ -10,6 +10,7 @@ import argparse
 import gc
 import numpy as np
 import pandas as pd
+import os
 import sys
 import torch
 import torch.nn as nn
@@ -20,7 +21,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #device = torch.device("cpu")
 
 from pathlib import Path
-Path("output").mkdir(parents=True, exist_ok=True)
 
 from file_io import *
 
@@ -125,7 +125,7 @@ def train_classifier(trainloader, valloader, ds_name = 'mrpc', em_model_name = '
     total_steps = len(trainloader) * epochs
     scheduler = get_linear_schedule_with_warmup(
             optimizer,
-            num_warmup_steps=100,
+            num_warmup_steps=0,
             num_training_steps=total_steps
         )
         
@@ -140,7 +140,12 @@ def train_classifier(trainloader, valloader, ds_name = 'mrpc', em_model_name = '
     model_id = ''
     try: model_id = em_model_name.split('/')[1]
     except: model_id = em_model_name 
+    
+    output_path = 'output/' + model_id 
+    Path(output_path).mkdir(parents=True, exist_ok=True)
     saved_model_name =  model_id + '_' +  ds_name + '_model_classifier.pth'
+    saved_model_history =  model_id + '_' +  ds_name + '_model_kan.json'
+    with open(os.path.join(output_path, saved_model_history), 'w') as fp: pass
 
     for epoch in range(epochs):
         # train
@@ -195,9 +200,9 @@ def train_classifier(trainloader, valloader, ds_name = 'mrpc', em_model_name = '
         if (val_accuracy > best_accuracy):
             best_accuracy = val_accuracy
             best_epoch = epoch
-            torch.save(model, 'output/' + saved_model_name)
+            torch.save(model, output_path + '/' + saved_model_name)
         
-        write_single_dict_to_jsonl_file('output/history_classifier.json', {'epoch':epoch+1, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'best_accuracy': best_accuracy, 'best_epoch':best_epoch+1}, file_access = 'a')
+        write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'epoch':epoch+1, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'best_accuracy': best_accuracy, 'best_epoch':best_epoch+1}, file_access = 'a')
           
         print(f"Epoch {epoch + 1}, Train Loss: {train_loss}, Train Accuracy: {train_accuracy}")
         print(f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}")
@@ -207,9 +212,6 @@ def train_classifier(trainloader, valloader, ds_name = 'mrpc', em_model_name = '
     
 def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-base-cased', \
                 epochs = 20, n_size = 1, m_size = 768, n_hidden = 64, n_class = 2, embed_type = 'pool'):
-    
-    # Each KAN is initialized to have G = 3, trained with LBFGS, with increasing number of grid points 
-    # every 200 steps to cover G = {3, 5, 10, 20, 50, 100, 200}
     
     # define KAN model
     model = KAN([n_size*m_size, n_hidden, n_class]) 
@@ -222,7 +224,7 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
     total_steps = len(trainloader) * epochs
     scheduler = get_linear_schedule_with_warmup(
         optimizer,
-        num_warmup_steps=100,
+        num_warmup_steps=0,
         num_training_steps=total_steps
         )
         
@@ -230,15 +232,18 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
     criterion = nn.CrossEntropyLoss()
     best_accuracy = 0
     best_epoch = 0
-    write_single_dict_to_jsonl_file('output/history_kan.json', {}, file_access = 'w')
     
+    
+    # create model saved name 
     model_id = ''
-    try:
-        model_id = em_model_name.split('/')[1]
-    except:
-        model_id = em_model_name
-        
+    try: model_id = em_model_name.split('/')[1]
+    except: model_id = em_model_name
+    
+    output_path = 'output/' + model_id 
+    Path(output_path).mkdir(parents=True, exist_ok=True)
     saved_model_name =  model_id + '_' +  ds_name + '_model_kan.pth'
+    saved_model_history =  model_id + '_' +  ds_name + '_model_kan.json'
+    with open(os.path.join(output_path, saved_model_history), 'w') as fp: pass
     
     for epoch in range(epochs):
         # train
@@ -293,9 +298,11 @@ def train_kan(trainloader, valloader, ds_name = 'mrpc', em_model_name = 'bert-ba
         if (val_accuracy > best_accuracy):
             best_accuracy = val_accuracy
             best_epoch = epoch
-            torch.save(model, 'output/' + saved_model_name)
+            
+            
+            torch.save(model, output_path + '/' + saved_model_name)
         
-        write_single_dict_to_jsonl_file('output/history_kan.json', {'epoch':epoch+1, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'best_accuracy': best_accuracy, 'best_epoch':best_epoch+1}, file_access = 'a')
+        write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'epoch':epoch+1, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'best_accuracy': best_accuracy, 'best_epoch':best_epoch+1}, file_access = 'a')
         
         print(f"Epoch {epoch + 1}, Train Loss: {train_loss}, Train Accuracy: {train_accuracy}")
         print(f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}")
@@ -399,10 +406,10 @@ if __name__ == "__main__":
     main(args)
     
 # ['rte', 'wnli', 'mrpc', 'cola']
-#python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2
+#python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 512 --n_class 2
 
 # python run_train.py --mode "train" --em_model_name "microsoft/deberta-v3-large" --ds_name "wnli" --epochs 5 --batch_size 4 --max_len 512 --n_size 1 --m_size 1024 --n_hidden 64 --n_class 2
 
 # python run_train.py --mode "test" --em_model_name "bert-base-cased" --model_path "bart-base\checkpoint-1321" --test_path "dataset/test.json" --test_batch_size 4 --max_source_length 256 --min_target_length 1
 
-# python run_train.py --mode "train" --network "classifier" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_class 2
+# python run_train.py --mode "train" --network "classifier" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_class 2
