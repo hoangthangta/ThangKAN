@@ -21,7 +21,16 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 # Results
 Note that for WNLI, the accuracy will get stuck at ~0.5648 due to the dataset nature.
 
-updating...
+## WMLI
+| Network  | Best Training Accuracy | Validation Accuracy |
+| ------------- | ------------- |  ------------- |
+| EfficientKAN  |   |   0.5648 |
+| Classifier  |  |   0.5648 |
+| MLP  |  |   0.5648 |
+## MRPC
+
+## RTE
+## COLA
 
 # References
 * https://github.com/Blealtan/efficient-kan
