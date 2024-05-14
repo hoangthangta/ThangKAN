@@ -16,9 +16,11 @@ This repo is for using KANs in text classification problems over GLEU datasets (
 ## Commands
 We use **bert-base-cased** as the pre-trained model for feeding embeddings in the training process. All models have 768  input size, 64 hidden neurons, and 2 output classes (0 & 1).
 
-```python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2```
+```python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2```
 
 # Results
+Note that for WNLI, the accuracy will get stuck at ~0.5648 due to the dataset nature.
+
 updating...
 
 # References
