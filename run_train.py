@@ -1,5 +1,5 @@
 from datasets import load_dataset
-from models import EfficientKAN, CategoryClassifier, MLPWithTransformers
+from models import EfficientKAN, CategoryClassifier
 from kan import KAN
 
 from pathlib import Path
@@ -112,109 +112,6 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
         return embeddings
 
 
-def train_kan(trainloader, valloader, network = 'classifier', ds_name = 'mrpc', em_model_name = 'bert-base-cased', \
-                epochs = 20, n_size = 1, m_size = 768, n_hidden = 64, n_class = 2, embed_type = 'pool'):
-    """
-        for training original kan
-    """
-    
-    model = KAN(width=[n_size*m_size,n_hidden, n_class], grid=5, k=3, device = device)
-    model.to(device)
-    
-    optimizer = optim.AdamW(model.parameters(), lr=1e-3)
-    
-    # define learning rate scheduler
-    #scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
-    total_steps = len(trainloader) * epochs
-    scheduler = get_linear_schedule_with_warmup(
-            optimizer,
-            num_warmup_steps=0,
-            num_training_steps=total_steps
-        )
-        
-    # define loss
-    criterion = nn.CrossEntropyLoss()
-    
-    best_accuracy = 0
-    best_epoch = 0
-    
-    # create model saved name 
-    model_id = ''
-    try: model_id = em_model_name.split('/')[1]
-    except: model_id = em_model_name 
-    
-    output_path = 'output/' + model_id 
-    Path(output_path).mkdir(parents=True, exist_ok=True)
-    saved_model_name =  model_id + '_' +  ds_name + '_model_'+ network + '.pth'
-    saved_model_history =  model_id + '_' +  ds_name + '_model_' + network + '.json'
-    with open(os.path.join(output_path, saved_model_history), 'w') as fp: pass
-
-    for epoch in range(epochs):
-        # train
-        
-        em_model.train() 
-        train_loss = 0
-        train_accuracy = 0
-        with tqdm(trainloader) as pbar:
-            for i, items in enumerate(pbar):
-                optimizer.zero_grad()
-                labels = items['label']
-                
-                texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
-                print('texts: ', texts)
-                outputs = model(texts.to(device))
-
-                loss = criterion(outputs, labels.to(device))
-                train_loss += loss.item()
-                loss.backward()
-                nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-                optimizer.step()
-                scheduler.step()
-
-                train_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
-                pbar.set_postfix(train_loss=train_loss/len(trainloader), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])     
-
-        train_loss /= len(trainloader)
-        train_accuracy /= len(trainloader)
-        
-        # update learning rate
-        #scheduler.step() 
-        
-        # validation
-        
-        em_model.eval() 
-        val_loss = 0
-        val_accuracy = 0
-        
-        with torch.no_grad():
-            with tqdm(valloader) as pbar:
-                for i, items in enumerate(pbar):
-                    labels = items['label']
-                    
-                    texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
-                
-                    outputs = model.forward(texts)
-                    
-                    val_loss += criterion(outputs, labels.to(device)).item()
-                    val_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
-                    pbar.set_postfix(val_loss=val_loss/len(valloader), val_accuracy=val_accuracy/len(valloader))
-        val_loss /= len(valloader)
-        val_accuracy /= len(valloader)
-        
-        if (val_accuracy > best_accuracy):
-            best_accuracy = val_accuracy
-            best_epoch = epoch
-            torch.save(model, output_path + '/' + saved_model_name)
-        
-        write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'epoch':epoch+1, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'best_accuracy': best_accuracy, 'best_epoch':best_epoch+1}, file_access = 'a')
-          
-        print(f"Epoch {epoch + 1}, Train Loss: {train_loss}, Train Accuracy: {train_accuracy}")
-        print(f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}")
-        
-        torch.cuda.empty_cache()
-        gc.collect()
-    
-
 def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc', em_model_name = 'bert-base-cased', \
                         epochs = 20, n_size = 1, m_size = 768, n_hidden = 64, n_class = 2, embed_type = 'pool'):
     """
@@ -230,6 +127,8 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     elif(network == 'mlp'):
         model = MLPWithTransformers(n_size*m_size, [n_hidden], n_class)
         model.to(device)
+    elif(network == 'kan'):
+        model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
     else:
         print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
     
@@ -275,16 +174,13 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                 labels = items['label']
                 
                 outputs = {}
-                if (network == 'classifier'):
+                if (network in ['classifier', 'mlp']):
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network == 'efficientkan'):
+                elif(network in ['efficientkan', 'kan']):
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     outputs = model(texts)
-                elif(network == 'mlp'):
-                    model = MLPWithTransformers(n_size*m_size, [n_hidden], n_class)
-                    model.to(device)
                 else:
                     print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
 
@@ -316,16 +212,13 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     labels = items['label']
                     
                     outputs = {}
-                    if (network == 'classifier'):
+                    if (network in ['classifier', 'mlp']):
                         input_ids = items["input_ids"].to(device)
                         attention_mask = items["attention_mask"].to(device)
                         outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                    elif(network == 'efficientkan'):
+                    elif(network in ['efficientkan', 'kan']):
                         texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                         outputs = model(texts)
-                    elif(network == 'mlp'):
-                        model = MLPWithTransformers(n_size*m_size, [n_hidden], n_class)
-                        model.to(device)
                     else:
                         print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
                     
@@ -364,19 +257,16 @@ def infer_model(test_loader, network = 'classifier', model_path = 'model.pth', n
                 labels = items['label']
                 
                 outputs = {}
-                if (network == 'classifier'):
+                if (network in ['classifier', 'mlp']):
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network == 'efficientkan'):
+                elif(network in ['efficientkan', 'kan']):
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     outputs = model(texts)
-                elif(network == 'mlp'):
-                    model = MLPWithTransformers(n_size*m_size, [n_hidden], n_class)
-                    model.to(device)
                 else:
                     print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
-                
+            
                 test_loss += criterion(outputs, labels.to(device)).item()
                 test_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
                 pbar.set_postfix(test_loss=test_loss.item(), test_accuracy=test_accuracy.item())
@@ -421,7 +311,7 @@ def main(args):
                                         max_len = args.max_len, batch_size = args.batch_size)
         
         
-        train_kan(loader['train'], loader['validation'], network = args.network, ds_name = args.ds_name, \
+        train_model(loader['train'], loader['validation'], network = args.network, ds_name = args.ds_name, \
                     em_model_name = args.em_model_name, epochs = args.epochs, n_size = args.n_size, \
                     m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class)
         
@@ -429,7 +319,7 @@ def main(args):
     elif (args.mode == 'test'):
         loader = build_data_loader(ds_name = args.ds_name, max_len = args.max_len, batch_size = args.batch_size, \
                                         test_only = True)
-        infer_kan(loader['test'], model_path = args.model_path, n_size = args.n_size, m_size = args.m_size)
+        infer_model(loader['test'], model_path = args.model_path, n_size = args.n_size, m_size = args.m_size)
         
 if __name__ == "__main__":
 
