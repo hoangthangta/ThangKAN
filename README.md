@@ -33,21 +33,21 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 | ------------- | ------------- |  ------------- |
 | EfficientKAN  |  - |  - |
 | Classifier  |   |   - |
-| MLP  | 0.5083 |   - |
+| MLP  | - |   - |
 
 ## RTE
 | Network  | Best Training Accuracy | Validation Accuracy |
 | ------------- | ------------- |  ------------- |
 | EfficientKAN  |  - |  - |
 | Classifier  |   |   - |
-| MLP  | 0.5083 |   - |
+| MLP  | - |   - |
 
 ## COLA
 | Network  | Best Training Accuracy | Validation Accuracy |
 | ------------- | ------------- |  ------------- |
 | EfficientKAN  |  - |  - |
 | Classifier  |   |   - |
-| MLP  | 0.5083 |   - |
+| MLP  | - |   - |
 
 # References
 * https://github.com/Blealtan/efficient-kan
