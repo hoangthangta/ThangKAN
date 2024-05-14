@@ -1,7 +1,7 @@
 from datasets import load_dataset
-from models import EfficientKAN, CategoryClassifier
 from kan import KAN
-
+from models import EfficientKAN, CategoryClassifier, MLPWithTransformers
+from prettytable import PrettyTable
 from pathlib import Path
 from sklearn.preprocessing import normalize
 from sklearn.feature_extraction.text import CountVectorizer
@@ -21,8 +21,9 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as transforms
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#device = torch.device("cpu")
+
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 
 from file_io import *
@@ -112,6 +113,19 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
         return embeddings
 
 
+def count_parameters(model):
+    table = PrettyTable(["Modules", "Parameters"])
+    total_params = 0
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad:
+            continue
+        params = parameter.numel()
+        table.add_row([name, params])
+        total_params += params
+    print(table)
+    print(f"Total Trainable Params: {total_params}")
+    return total_params
+
 def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc', em_model_name = 'bert-base-cased', \
                         epochs = 20, n_size = 1, m_size = 768, n_hidden = 64, n_class = 2, embed_type = 'pool'):
     """
@@ -129,9 +143,13 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         model.to(device)
     elif(network == 'kan'):
         model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
+        
     else:
         print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
     
+    count_parameters(model)
+    return
+        
     # define optimizer
     #optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
     optimizer = optim.AdamW(model.parameters(), lr=1e-3) # 1e-5, 2e-5
@@ -179,8 +197,12 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
                 elif(network in ['efficientkan', 'kan']):
+                    start = time.time()
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     outputs = model(texts)
+                    end = time.time()
+                    print("Seconds: ", (end - start))
+                    print('-'*20)
                 else:
                     print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
 
@@ -309,18 +331,22 @@ def main(args):
     if (args.mode == 'train'):
         loader = build_data_loader(ds_name = args.ds_name, em_model_name = args.em_model_name, \
                                         max_len = args.max_len, batch_size = args.batch_size)
-        
-        
+       
+        start = time.time()
         train_model(loader['train'], loader['validation'], network = args.network, ds_name = args.ds_name, \
                     em_model_name = args.em_model_name, epochs = args.epochs, n_size = args.n_size, \
                     m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class, embed_type = args.embed_type)
         
-         
+        end = time.time()
+        print("Training time in seconds: ", (end - start))
 
     elif (args.mode == 'test'):
+        start = time.time()
         loader = build_data_loader(ds_name = args.ds_name, max_len = args.max_len, batch_size = args.batch_size, \
                                         test_only = True)
         infer_model(loader['test'], model_path = args.model_path, n_size = args.n_size, m_size = args.m_size)
+        end = time.time()
+        print("Testing time in seconds: ", (end - start))
         
 if __name__ == "__main__":
 
@@ -348,7 +374,7 @@ if __name__ == "__main__":
     main(args)
     
 # ['rte', 'wnli', 'mrpc', 'cola'] 67.28 (128), 66.76 (64), 67.1 (32), 67.1 (16), 67.3 (8), 67.03 (4), 67.23 (2), 66 (1)
-#python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2
+#python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2
 
 # python run_train.py --mode "train" --network "classifier" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_class 2
 
