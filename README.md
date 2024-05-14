@@ -1,6 +1,11 @@
 This repo is for using KANs in text classification problems over GLEU datasets (WNLI, RTE, COLA, MRPC, etc).
 
 # Training
+
+We use **bert-base-cased** as the pre-trained model for feeding embeddings in the training process. All models have 768  input size, 64 hidden neurons, and 2 output classes (0 & 1).
+
+```python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2```
+
 ## Parameters
 * *mode*: working mode (train or test)
 * *network*: type of model (efficientkan, classifier, mlp)
@@ -13,13 +18,8 @@ This repo is for using KANs in text classification problems over GLEU datasets (
 * *n_hidden*: The number of hidden neurons. We use only 1 hidden layer, you can modify the code for more layers.
 * *n_class*: The number of classes. For GLUE tasks, there are only 2 classes, 0 and 1.
 
-## Commands
-We use **bert-base-cased** as the pre-trained model for feeding embeddings in the training process. All models have 768  input size, 64 hidden neurons, and 2 output classes (0 & 1).
-
-```python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2```
 
 # Results
-Note that for WNLI, the accuracy will get stuck at ~0.5648 due to the dataset nature.
 
 ## WMLI
 | Network  | Best Training Accuracy | Validation Accuracy |
@@ -27,9 +27,11 @@ Note that for WNLI, the accuracy will get stuck at ~0.5648 due to the dataset na
 | EfficientKAN  |   |   0.5648 |
 | Classifier  |  |   0.5648 |
 | MLP  |  |   0.5648 |
+
 ## MRPC
 
 ## RTE
+
 ## COLA
 
 # References
