@@ -134,7 +134,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     
     # define optimizer
     #optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    optimizer = optim.AdamW(model.parameters(), lr=1e-3)
+    optimizer = optim.AdamW(model.parameters(), lr=1e-3) # 1e-5, 2e-5
     
     # define learning rate scheduler
     #scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
