@@ -21,7 +21,7 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 
 # Results
 
-All experiments are performed with training on 10 epochs and a learning rate (lr) = 1e—3.
+All experiments are performed with training on 10 epochs and a learning rate (lr) = 1e-3.
 
 ## WMLI
 | Network  | Best Training Accuracy | Validation Accuracy |
