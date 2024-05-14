@@ -363,9 +363,6 @@ if __name__ == "__main__":
     parser.add_argument('--n_class', type=int, default=2)
     parser.add_argument('--embed_type', type=str, default='pool') # only for KAN
     
-    '''parser.add_argument('--train_path', type=str, default='dataset/train.json') 
-    parser.add_argument('--test_path', type=str, default='dataset/test.json')
-    parser.add_argument('--val_path', type=str, default='dataset/val.json')'''
     parser.add_argument('--model_path', type=str, default='model.pth')
   
     args = parser.parse_args()
