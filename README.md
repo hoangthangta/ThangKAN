@@ -35,6 +35,7 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 | Classifier  |   |   - |
 | MLP  | - |   - |
 
+
 ## RTE
 | Network  | Best Training Accuracy | Validation Accuracy |
 | ------------- | ------------- |  ------------- |
