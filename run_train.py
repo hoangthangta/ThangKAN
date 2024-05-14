@@ -21,10 +21,9 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as transforms
 
-
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cpu")
+#print('device: ', device)
 
 from file_io import *
 
@@ -49,7 +48,7 @@ def create_data_loader(ds_name, dataset, tokenizer, max_len = 512, batch_size = 
                          tokenizer=tokenizer,
                          max_len=max_len)
                          
-    return DataLoader(ds, batch_size=batch_size, num_workers=4, shuffle = shuffle)
+    return DataLoader(ds, batch_size=batch_size, num_workers=1, shuffle = shuffle)
     
 class TextDataset():
     def __init__(self, texts, labels, tokenizer, max_len):
@@ -131,7 +130,8 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     """
         for training classifier, efficientkan, and mlp
     """
-
+    
+    model = {}
     if (network == 'classifier'):
         model = CategoryClassifier(n_class, em_model_name)
         model.to(device)
@@ -139,17 +139,15 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         model = EfficientKAN([n_size*m_size, n_hidden, n_class])  # grid=5, k=3
         model.to(device)
     elif(network == 'mlp'):
-        model = MLPWithTransformers(n_size*m_size, [n_hidden], n_class)
+        model = MLPWithTransformers(n_size*m_size, [n_hidden], n_class, em_model_name)
         model.to(device)
     elif(network == 'kan'):
         model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
-        
+        model.to(device)
     else:
         print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
     
-    count_parameters(model)
-    return
-        
+    #count_parameters(model)    
     # define optimizer
     #optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
     optimizer = optim.AdamW(model.parameters(), lr=1e-3) # 1e-5, 2e-5
@@ -197,12 +195,12 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
                 elif(network in ['efficientkan', 'kan']):
-                    start = time.time()
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
-                    outputs = model(texts)
-                    end = time.time()
-                    print("Seconds: ", (end - start))
-                    print('-'*20)
+                    #start = time.time()
+                    outputs = model(texts.to(device))
+                    #end = time.time()
+                    #print("Seconds: ", (end - start))
+                    #print('-'*20)
                 else:
                     print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
 
@@ -374,7 +372,7 @@ if __name__ == "__main__":
     main(args)
     
 # ['rte', 'wnli', 'mrpc', 'cola'] 67.28 (128), 66.76 (64), 67.1 (32), 67.1 (16), 67.3 (8), 67.03 (4), 67.23 (2), 66 (1)
-#python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2
+#python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2
 
 # python run_train.py --mode "train" --network "classifier" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_class 2
 

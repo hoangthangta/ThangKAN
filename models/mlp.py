@@ -3,9 +3,9 @@ import torch.nn as nn
 from transformers import AutoModel
 
 class MLPWithTransformers(nn.Module):
-    def __init__(self, input_size, hidden_sizes, output_size):
+    def __init__(self, input_size, hidden_sizes, output_size, model_name):
         super(MLPWithTransformers, self).__init__()
-        self.model = AutoModel.from_pretrained('bert-base-uncased')
+        self.model = AutoModel.from_pretrained(model_name) # BERT
         self.fc_layers = nn.ModuleList([nn.Linear(input_size, hidden_sizes[0])])
         for i in range(len(hidden_sizes) - 1):
             self.fc_layers.append(nn.Linear(hidden_sizes[i], hidden_sizes[i+1]))
