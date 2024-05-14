@@ -1,4 +1,4 @@
-This repo is for using KANs in text classification problems over GLEU datasets (WNLI, RTE, COLA, MRPC, etc).
+This repo is for using KANs in text classification problems over GLUE datasets (WNLI, RTE, COLA, MRPC, etc).
 
 # Training
 
