@@ -2,7 +2,7 @@ This repo is for using KANs in text classification problems over GLEU datasets (
 
 # Training
 
-We use **bert-base-cased** as the pre-trained model for feeding embeddings in the training process. All models have 768 input size, 64 hidden neurons, and 2 output classes (0 & 1).
+We use **bert-base-cased** as the pre-trained model for feeding embeddings in the training process. All models have 768 input size, 64 hidden neurons, and 2 output classes (0 & 1). The training was performed  on 10 epochs with lr = 1e-3.
 
 ```python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2```
 
@@ -21,20 +21,33 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 
 # Results
 
-All experiments are performed with training on 10 epochs and a learning rate (lr) = 1e-3.
-
 ## WMLI
 | Network  | Best Training Accuracy | Validation Accuracy |
 | ------------- | ------------- |  ------------- |
-| EfficientKAN  |  0.5335 |   0.5648 |
+| EfficientKAN  |  **0.5335** |   0.5648 |
 | Classifier  |  0.5099 |   0.5648 |
 | MLP  | 0.5083 |   0.5648 |
 
 ## MRPC
+| Network  | Best Training Accuracy | Validation Accuracy |
+| ------------- | ------------- |  ------------- |
+| EfficientKAN  |  - |  - |
+| Classifier  |   |   - |
+| MLP  | 0.5083 |   - |
 
 ## RTE
+| Network  | Best Training Accuracy | Validation Accuracy |
+| ------------- | ------------- |  ------------- |
+| EfficientKAN  |  - |  - |
+| Classifier  |   |   - |
+| MLP  | 0.5083 |   - |
 
 ## COLA
+| Network  | Best Training Accuracy | Validation Accuracy |
+| ------------- | ------------- |  ------------- |
+| EfficientKAN  |  - |  - |
+| Classifier  |   |   - |
+| MLP  | 0.5083 |   - |
 
 # References
 * https://github.com/Blealtan/efficient-kan
