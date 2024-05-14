@@ -164,7 +164,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
 
     for epoch in range(epochs):
         # train
-        model.train()
+        if (network != 'kan'): model.train()
         em_model.train() 
         train_loss = 0
         train_accuracy = 0
@@ -201,7 +201,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         #scheduler.step() 
         
         # validation
-        model.eval()
+        if (network != 'kan'): model.eval()
         em_model.eval() 
         val_loss = 0
         val_accuracy = 0
@@ -313,8 +313,9 @@ def main(args):
         
         train_model(loader['train'], loader['validation'], network = args.network, ds_name = args.ds_name, \
                     em_model_name = args.em_model_name, epochs = args.epochs, n_size = args.n_size, \
-                    m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class)
+                    m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class, embed_type = args.embed_type)
         
+         
 
     elif (args.mode == 'test'):
         loader = build_data_loader(ds_name = args.ds_name, max_len = args.max_len, batch_size = args.batch_size, \
@@ -336,6 +337,7 @@ if __name__ == "__main__":
     parser.add_argument('--m_size', type=int, default=768)
     parser.add_argument('--n_hidden', type=int, default=64)
     parser.add_argument('--n_class', type=int, default=2)
+    parser.add_argument('--embed_type', type=str, default='pool') # only for KAN
     
     '''parser.add_argument('--train_path', type=str, default='dataset/train.json') 
     parser.add_argument('--test_path', type=str, default='dataset/test.json')
