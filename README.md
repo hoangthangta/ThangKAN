@@ -39,7 +39,7 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 ## WMLI
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| EfficientKAN  |  **0.5288** |   0.5648 | 202  |
+| EfficientKAN  |  0.5288 |   0.5648 | 202  |
 | Classifier  |  0.5414 |   0.5648 | 410  |
 | TransformerMLP  | 0.5083 |   0.5648 | 418  |
 
