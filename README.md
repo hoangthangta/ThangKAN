@@ -1,4 +1,4 @@
-This repo is for using KANs in text classification problems over GLUE datasets (WNLI, RTE, COLA, MRPC, etc).
+This repo is for using KANs in text classification problems over GLUE datasets (WNLI, RTE, COLA, MRPC, etc). Our paper will be published in arXiv soon.
 
 # Requirements
 * Python >= 3.9
@@ -70,5 +70,5 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 * https://github.com/KindXiaoming/pykan
 
 # Contact
-If you have any questions, please contact tahoangthang@gmail.com
+If you have any questions, please contact: tahoangthang@gmail.com
 
