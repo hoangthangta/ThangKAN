@@ -25,18 +25,18 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 # Results
 
 ## WMLI
-| Network  | Best Training Accuracy | Validation Accuracy |
-| ------------- | ------------- |  ------------- |
-| EfficientKAN  |  **0.5288** |   0.5648 |
-| Classifier  |  0.5414 |   0.5648 |
-| TransformerMLP  | 0.5083 |   0.5648 |
+| Network  | Best Training Accuracy | Validation Accuracy | Training time |
+| ------------- | ------------- |  ------------- | ------------- |
+| EfficientKAN  |  **0.5288** |   0.5648 | 202 s |
+| Classifier  |  0.5414 |   0.5648 | 410 s |
+| TransformerMLP  | 0.5083 |   0.5648 | 418 s |
 
 ## MRPC
-| Network  | Best Training Accuracy | Validation Accuracy |
-| ------------- | ------------- |  ------------- |
-| EfficientKAN  |  0.6782 |  0.6838 |
-| Classifier  | 0.6712  |   0.6838 |
-| TransformerMLP  | 0.6744 |   0.6838 |
+| Network  | Best Training Accuracy | Validation Accuracy | Training time |
+| ------------- | ------------- |  ------------- |  ------------- |
+| EfficientKAN  |  0.6782 |  0.6838 | 779 s |
+| Classifier  | 0.6712  |   0.6838 | 2015 s |
+| TransformerMLP  | 0.6744 |   0.6838 | 2012 s |
 
 
 ## RTE
