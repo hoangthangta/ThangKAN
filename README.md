@@ -17,7 +17,8 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 ```python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
 ## Original KAN (https://github.com/KindXiaoming/pykan)
-The training takes a long time to infer outputs from the original KAN model (outputs = KAN(texts)). We are currently working on alternative solutions.
+**The training takes a long time to infer outputs from the original KAN model (outputs = KAN(texts)). We are currently working on alternative solutions.**
+
 ```python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
 ## Parameters
