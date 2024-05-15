@@ -27,16 +27,16 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 ## WMLI
 | Network  | Best Training Accuracy | Validation Accuracy |
 | ------------- | ------------- |  ------------- |
-| EfficientKAN  |  **0.5335** |   0.5648 |
-| Classifier  |  0.5099 |   0.5648 |
-| MLPWithTransformers  | 0.5083 |   0.5648 |
+| EfficientKAN  |  **0.5288** |   0.5648 |
+| Classifier  |  0.5414 |   0.5648 |
+| TransformerMLP  | 0.5083 |   0.5648 |
 
 ## MRPC
 | Network  | Best Training Accuracy | Validation Accuracy |
 | ------------- | ------------- |  ------------- |
 | EfficientKAN  |  0.6782 |  0.6838 |
 | Classifier  | 0.6712  |   0.6838 |
-| MLP  | 0.6744 |   0.6838 |
+| TransformerMLP  | 0.6744 |   0.6838 |
 
 
 ## RTE
@@ -44,14 +44,14 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 | ------------- | ------------- |  ------------- |
 | EfficientKAN  |  - |  - |
 | Classifier  |   |   - |
-| MLP  | - |   - |
+| TransformerMLP  | - |   - |
 
 ## COLA
 | Network  | Best Training Accuracy | Validation Accuracy |
 | ------------- | ------------- |  ------------- |
 | EfficientKAN  |  - |  - |
 | Classifier  |   |   - |
-| MLP  | - |   - |
+| TransformerMLP  | - |   - |
 
 # References
 * https://github.com/Blealtan/efficient-kan
