@@ -2,6 +2,7 @@ This repo is for using KANs in text classification over GLUE tasks (WNLI, RTE, C
 
 # Requirements
 * Python >= 3.9
+* Install pykan (https://github.com/KindXiaoming/pykan)
 
 # Training
 
