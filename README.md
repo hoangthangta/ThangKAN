@@ -34,9 +34,9 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 ## MRPC
 | Network  | Best Training Accuracy | Validation Accuracy |
 | ------------- | ------------- |  ------------- |
-| EfficientKAN  |  - |  - |
-| Classifier  |   |   - |
-| MLP  | - |   - |
+| EfficientKAN  |  0.6782 |  0.6838 |
+| Classifier  | 0.6712  |   0.6838 |
+| MLP  | 0.6744 |   0.6838 |
 
 
 ## RTE
