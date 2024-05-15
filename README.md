@@ -35,6 +35,7 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings in 
 * embed_type: the type of embeddings (pool, last hidden, or weight)
 
 # Results
+Note that the validation accuracy values by tasks have a limit due to the GLUE dataset nature.
 
 ## WMLI
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
