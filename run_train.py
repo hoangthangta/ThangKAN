@@ -1,6 +1,6 @@
 from datasets import load_dataset
 from kan import KAN
-from models import EfficientKAN, CategoryClassifier, MLPWithTransformers
+from models import EfficientKAN, TransformerClassifier, TransformerMLP
 from prettytable import PrettyTable
 from pathlib import Path
 from sklearn.preprocessing import normalize
@@ -131,17 +131,20 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         for training classifier, efficientkan, and mlp
     """
     
+    start = time.time()
+    
     model = {}
     if (network == 'classifier'):
-        model = CategoryClassifier(n_class, em_model_name)
+        model = TransformerClassifier(n_class, em_model_name)
         model.to(device)
     elif(network == 'efficientkan'):
         model = EfficientKAN([n_size*m_size, n_hidden, n_class])  # grid=5, k=3
         model.to(device)
     elif(network == 'mlp'):
-        model = MLPWithTransformers(n_size*m_size, [n_hidden], n_class, em_model_name)
+        model = TransformerMLP(n_size*m_size, [n_hidden], n_class, em_model_name)
         model.to(device)
     elif(network == 'kan'):
+        # It takes a very long time to infer an output from the original KAN package
         model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
         model.to(device)
     else:
@@ -174,10 +177,11 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     
     output_path = 'output/' + model_id 
     Path(output_path).mkdir(parents=True, exist_ok=True)
-    saved_model_name =  model_id + '_' +  ds_name + '_model_'+ network + '.pth'
-    saved_model_history =  model_id + '_' +  ds_name + '_model_' + network + '.json'
+    saved_model_name =  model_id + '_' +  ds_name + '_'+ network + '.pth'
+    saved_model_history =  model_id + '_' +  ds_name + '_' + network + '.json'
     with open(os.path.join(output_path, saved_model_history), 'w') as fp: pass
-
+    
+    
     for epoch in range(epochs):
         # train
         if (network != 'kan'): model.train()
@@ -196,11 +200,9 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
                 elif(network in ['efficientkan', 'kan']):
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
-                    #start = time.time()
+                    
                     outputs = model(texts.to(device))
-                    #end = time.time()
-                    #print("Seconds: ", (end - start))
-                    #print('-'*20)
+                    
                 else:
                     print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
 
@@ -253,14 +255,17 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
             best_epoch = epoch
             torch.save(model, output_path + '/' + saved_model_name)
         
-        write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'epoch':epoch+1, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'best_accuracy': best_accuracy, 'best_epoch':best_epoch+1}, file_access = 'a')
+        write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'epoch':epoch+1, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'best_accuracy': best_accuracy, 'best_epoch':best_epoch+1, 'val_loss': val_loss, 'train_loss':train_loss}, file_access = 'a')
           
         print(f"Epoch {epoch + 1}, Train Loss: {train_loss}, Train Accuracy: {train_accuracy}")
         print(f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}")
         
         torch.cuda.empty_cache()
         gc.collect()
-
+    
+    end = time.time()
+    
+    write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'training time':end-start}, file_access = 'a')              
 
 def infer_model(test_loader, network = 'classifier', model_path = 'model.pth', n_size = 1, m_size = 768):
 
@@ -330,21 +335,19 @@ def main(args):
         loader = build_data_loader(ds_name = args.ds_name, em_model_name = args.em_model_name, \
                                         max_len = args.max_len, batch_size = args.batch_size)
        
-        start = time.time()
         train_model(loader['train'], loader['validation'], network = args.network, ds_name = args.ds_name, \
                     em_model_name = args.em_model_name, epochs = args.epochs, n_size = args.n_size, \
                     m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class, embed_type = args.embed_type)
         
-        end = time.time()
-        print("Training time in seconds: ", (end - start))
+        
 
     elif (args.mode == 'test'):
-        start = time.time()
+        
         loader = build_data_loader(ds_name = args.ds_name, max_len = args.max_len, batch_size = args.batch_size, \
                                         test_only = True)
         infer_model(loader['test'], model_path = args.model_path, n_size = args.n_size, m_size = args.m_size)
-        end = time.time()
-        print("Testing time in seconds: ", (end - start))
+        
+        
         
 if __name__ == "__main__":
 
@@ -363,7 +366,14 @@ if __name__ == "__main__":
     parser.add_argument('--n_class', type=int, default=2)
     parser.add_argument('--embed_type', type=str, default='pool') # only for KAN
     
+    '''parser.add_argument('--train_path', type=str, default='dataset/train.json') 
+    parser.add_argument('--test_path', type=str, default='dataset/test.json')
+    parser.add_argument('--val_path', type=str, default='dataset/val.json')'''
     parser.add_argument('--model_path', type=str, default='model.pth')
   
     args = parser.parse_args()
     main(args)
+    
+# ['rte', 'wnli', 'mrpc', 'cola'] 67.28 (128), 66.76 (64), 67.1 (32), 67.1 (16), 67.3 (8), 67.03 (4), 67.23 (2), 66 (1)
+#python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
+
