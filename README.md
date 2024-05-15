@@ -7,7 +7,18 @@ This repo is for using KANs in text classification problems over GLUE datasets (
 
 We use **bert-base-cased** as the pre-trained model for feeding embeddings in the training process. All models have 768 input size, 64 hidden neurons, and 2 output classes (0 & 1). The training was performed  on 10 epochs with lr = 1e-3.
 
+## EfficientKAN
+```python run_train.py --mode "train" --network "efficient kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
+
+## TransformerMLP
 ```python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
+
+## TransformerClassifier (with Dropout and Linear)
+```python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
+
+## Original KAN (https://github.com/KindXiaoming/pykan)
+The training takes a long time to infer outputs from the original KAN model (outputs = KAN(texts)). We are currently working on alternative solutions.
+```python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
 ## Parameters
 * *mode*: working mode (train or test)
