@@ -1,5 +1,8 @@
 This repo is for using KANs in text classification problems over GLUE datasets (WNLI, RTE, COLA, MRPC, etc).
 
+# Requirements
+* Python >= 3.9
+
 # Training
 
 We use **bert-base-cased** as the pre-trained model for feeding embeddings in the training process. All models have 768 input size, 64 hidden neurons, and 2 output classes (0 & 1). The training was performed  on 10 epochs with lr = 1e-3.
