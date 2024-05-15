@@ -26,7 +26,7 @@ We use **bert-base-cased** as the pre-trained model for feeding embeddings in th
 | ------------- | ------------- |  ------------- |
 | EfficientKAN  |  **0.5335** |   0.5648 |
 | Classifier  |  0.5099 |   0.5648 |
-| MLP  | 0.5083 |   0.5648 |
+| MLPWithTransformers  | 0.5083 |   0.5648 |
 
 ## MRPC
 | Network  | Best Training Accuracy | Validation Accuracy |
