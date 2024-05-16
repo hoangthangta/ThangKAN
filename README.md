@@ -64,7 +64,7 @@ Note that the validation accuracy values by tasks have a limit due to the GLUE d
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | EfficientKAN  |  0.7083 | 0.6931 | 866 |
-| Classifier  |   |   0.6912 | |
+| Classifier  | 0.6915  |   0.6912  2286| |
 | TransformerMLP  | 0.7043 |   0.6912 | 2299 |
 
 # References
