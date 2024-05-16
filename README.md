@@ -43,7 +43,7 @@ Note that the validation accuracy values by tasks have a limit due to the GLUE d
 | ------------- | ------------- |  ------------- | ------------- |
 | EfficientKAN  |  0.5288 |   0.5648 | **202**  |
 | Classifier  |  **0.5414** |   0.5648 | 410  |
-| TransformerMLP  | 0.5083 |   0.5648 | 418  |
+| TransformerMLP  | 0.5335 |   0.5648 | 418  |
 
 ## MRPC
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
