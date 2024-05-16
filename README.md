@@ -56,8 +56,8 @@ Note that the validation accuracy values by tasks have a limit due to the GLUE d
 ## RTE
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| EfficientKAN  |  0.5248 |  0.5428 | |
-| Classifier  | 0.5016  |   0.5214 | |
+| EfficientKAN  |  0.5248 |  0.5428 | 547 |
+| Classifier  | 0.5016  |   0.5214 | 1379 |
 | TransformerMLP  | 0.5016 |   0.5214 | 1392 |
 
 ## COLA
