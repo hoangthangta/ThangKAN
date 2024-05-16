@@ -60,12 +60,12 @@ Note that the validation accuracy values by tasks have a limit due to the GLUE d
 | Classifier  | 0.5016  |   0.5214 | 1379 |
 | TransformerMLP  | 0.5016 |   0.5214 | 1392 |
 
-## COLA
+## COLA (5 epochs)
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| EfficientKAN  |  - |  - | |
-| Classifier  |   |   - | |
-| TransformerMLP  | - |   - | |
+| EfficientKAN  |  - | 0.6912 | |
+| Classifier  |   |   0.6912 | |
+| TransformerMLP  | 0.7043 |   0.6912 | 2299 |
 
 # References
 * https://github.com/Blealtan/efficient-kan
