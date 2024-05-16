@@ -41,14 +41,14 @@ Note that the validation accuracy values by tasks have a limit due to the GLUE d
 ## WMLI
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| EfficientKAN  |  0.5288 |   0.5648 | 202  |
-| Classifier  |  0.5414 |   0.5648 | 410  |
+| EfficientKAN  |  0.5288 |   0.5648 | **202**  |
+| Classifier  |  **0.5414** |   0.5648 | 410  |
 | TransformerMLP  | 0.5083 |   0.5648 | 418  |
 
 ## MRPC
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- |  ------------- |
-| EfficientKAN  |  0.6782 |  0.6838 | 779  |
+| EfficientKAN  |  **0.6782** |  0.6838 | **779**  |
 | Classifier  | 0.6712  |   0.6838 | 2015  |
 | TransformerMLP  | 0.6744 |   0.6838 | 2012 |
 
@@ -56,7 +56,7 @@ Note that the validation accuracy values by tasks have a limit due to the GLUE d
 ## RTE
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| EfficientKAN  |  0.5248 |  0.5428 | 547 |
+| EfficientKAN  |  **0.5248** |  **0.5428** | **547** |
 | Classifier  | 0.5016  |   0.5214 | 1379 |
 | TransformerMLP  | 0.5016 |   0.5214 | 1392 |
 
