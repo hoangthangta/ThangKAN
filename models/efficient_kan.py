@@ -57,12 +57,12 @@ class EfficientKANLinear(torch.nn.Module):
 
     def reset_parameters(self):
         """ 
-            Both kaiming_uniform_ and xavier_uniform_ can use for text classification, but we are not sure 
+            Both kaiming_uniform_ and xavier_uniform_ can be used for text classification, but we are not sure 
             which one is better. kaiming_uniform_ was initially designed for image classification. 
             
-            Because SiLU, which shares some features with ReLU is used as the activations, so we choose kaiming_uniform_.
+            Because SiLU, which shares some features with ReLU, is used for the activations, we chose kaiming_uniform_.
             
-            We use the golden ratio as the scale step, (1 + math.sqrt(5))/2.
+            We use the golden ratio as the scale step: (1 + math.sqrt(5))/2.
         """
         torch.nn.init.kaiming_uniform_(self.base_weight, a=(1 + math.sqrt(5))/2 * self.scale_base)
         #torch.nn.init.xavier_uniform_(self.base_weight, gain = ((1 + math.sqrt(5))/2) * self.scale_base)
