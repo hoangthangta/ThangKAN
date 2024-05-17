@@ -36,7 +36,7 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
 * *embed_type*: the type of embeddings (pool, last hidden, or weight)
 
 # Results
-Note that the validation accuracy values by tasks have a limit due to the GLUE dataset nature.
+Note that task validation accuracy is limited due to the nature of the GLUE dataset. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLP and TransformerClassifier.
 
 ## WMLI (10 epochs)
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
