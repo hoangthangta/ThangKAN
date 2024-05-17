@@ -18,17 +18,3 @@ class TransformerMLP(nn.Module):
             output = torch.relu(fc_layer(output))
         output = self.output_layer(output)
         return output
-
-'''class NaiveMLP(nn.Module):
-    def __init__(self, input_size, hidden_sizes, output_size):
-        super(NaiveMLP, self).__init__()
-        self.fc_layers = nn.ModuleList([nn.Linear(input_size, hidden_sizes[0])])
-        for i in range(len(hidden_sizes) - 1):
-            self.fc_layers.append(nn.Linear(hidden_sizes[i], hidden_sizes[i+1]))
-        self.output_layer = nn.Linear(hidden_sizes[-1], output_size)
-
-    def forward(self, x):
-        for fc_layer in self.fc_layers:
-            x = torch.relu(fc_layer(x))
-        x = self.output_layer(x)
-        return x'''
