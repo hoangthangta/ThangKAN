@@ -34,6 +34,7 @@ def create_data_loader(ds_name, dataset, tokenizer, max_len = 512, batch_size = 
        
         text = ''
         if (ds_name in ['mrpc', 'rte', 'wnli']):
+            # only for BERT, other models may have different special tokens
             text = '[CLS] ' + item['sentence1'] + ' [SEP] ' + item['sentence2'] + ' [SEP]'
  
         if (ds_name == 'cola'):
@@ -108,7 +109,7 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
             #std_mean = torch.std_mean(embeddings, dim=1, keepdim=True)
             #embeddings = (embeddings - std_mean[1])/std_mean[0]
 
-        #del outputs
+        del outputs, input_ids, attention_mask
         return embeddings
 
 
@@ -338,8 +339,6 @@ def main(args):
         train_model(loader['train'], loader['validation'], network = args.network, ds_name = args.ds_name, \
                     em_model_name = args.em_model_name, epochs = args.epochs, n_size = args.n_size, \
                     m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class, embed_type = args.embed_type)
-        
-        
 
     elif (args.mode == 'test'):
         
@@ -347,8 +346,7 @@ def main(args):
                                         test_only = True)
         infer_model(loader['test'], model_path = args.model_path, n_size = args.n_size, m_size = args.m_size)
         
-        
-        
+       
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Training Parameters')
@@ -376,4 +374,3 @@ if __name__ == "__main__":
     
 # ['rte', 'wnli', 'mrpc', 'cola']
 #python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "cola" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
-
