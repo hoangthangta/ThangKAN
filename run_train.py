@@ -1,10 +1,10 @@
 from datasets import load_dataset
+from file_io import *
 from kan import KAN
 from models import EfficientKAN, TransformerClassifier, TransformerMLP
 from prettytable import PrettyTable
 from pathlib import Path
-from sklearn.preprocessing import normalize
-from sklearn.feature_extraction.text import CountVectorizer
+#from sklearn.preprocessing import normalize
 from transformers import AutoModel, AutoTokenizer, get_linear_schedule_with_warmup
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -19,13 +19,6 @@ import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision.transforms as transforms
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#device = torch.device("cpu")
-#print('device: ', device)
-
-from file_io import *
 
 def create_data_loader(ds_name, dataset, tokenizer, max_len = 512, batch_size = 4, shuffle = False):
 
@@ -363,13 +356,18 @@ if __name__ == "__main__":
     parser.add_argument('--n_hidden', type=int, default=64)
     parser.add_argument('--n_class', type=int, default=2)
     parser.add_argument('--embed_type', type=str, default='pool') # only for KAN
-    
+    parser.add_argument('--device', type=str, default='cuda')
     '''parser.add_argument('--train_path', type=str, default='dataset/train.json') 
     parser.add_argument('--test_path', type=str, default='dataset/test.json')
     parser.add_argument('--val_path', type=str, default='dataset/val.json')'''
     parser.add_argument('--model_path', type=str, default='model.pth')
-  
     args = parser.parse_args()
+    
+    global device
+    device = args.device
+    if (args.device == 'cuda'): # check available
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     main(args)
     
 # ['rte', 'wnli', 'mrpc', 'cola']
