@@ -29,7 +29,7 @@ def reduce_size(embeddings, n_size = 1, m_size = 8):
     return embeddings
 ```
 
-Then, we can run the training:
+Then, we can reluctantly run the training:
 
 ```python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --device "cpu"```
 
