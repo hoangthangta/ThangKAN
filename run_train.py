@@ -224,9 +224,14 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                         input_ids = items["input_ids"].to(device)
                         attention_mask = items["attention_mask"].to(device)
                         outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                    elif(network in ['efficientkan', 'kan']):
+                    elif(network == 'efficientkan'):
                         texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
-                        outputs = model(texts)
+                        outputs = model(texts.to(device))
+                    elif(network == 'kan'): 
+                        # embed_type always 'pool'
+                        texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = 'pool').to(device)
+                        texts = reduce_size(texts, n_size = n_size, m_size = m_size)
+                        outputs = model(texts.to(device))     
                     else:
                         print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
                     
