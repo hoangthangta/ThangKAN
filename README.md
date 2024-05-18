@@ -18,9 +18,17 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
 ```python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
 ## Original KAN (https://github.com/KindXiaoming/pykan)
-**The training takes a very long time when the model infers outputs (outputs = KAN(texts)). We are currently working on alternative solutions.**
+**The training takes a very long time when the model infers outputs with the input size 768 (outputs = KAN(texts)).** Therefore, we must reduce the embedding size from 768 to 8 (n_size*m_size) by this function (utils.py).
 
-```python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
+```def reduce_size(embeddings, n_size = 1, m_size = 8):
+    second_dim = list(embeddings.shape)[-1]
+    first_dim = list(embeddings.shape)[0]
+    embeddings = torch.reshape(embeddings, (first_dim, int(second_dim/(n_size*m_size)), n_size*m_size))
+    embeddings = torch.sum(embeddings, (1), keepdim = True).squeeze()
+    return embeddings```
+
+Then, we can run:
+```python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --device "cpu"```
 
 ## Parameters
 * *mode*: working mode ("train" or "test")
