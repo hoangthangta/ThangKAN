@@ -25,7 +25,8 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
     first_dim = list(embeddings.shape)[0]
     embeddings = torch.reshape(embeddings, (first_dim, int(second_dim/(n_size*m_size)), n_size*m_size))
     embeddings = torch.sum(embeddings, (1), keepdim = True).squeeze()
-    return embeddings```
+    return embeddings
+```
 
 Then, we can run:
 ```python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --device "cpu"```
