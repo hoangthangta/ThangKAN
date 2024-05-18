@@ -34,6 +34,7 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
 * *n_hidden*: The number of hidden neurons. We use only 1 hidden layer. You can modify the code for more layers.
 * *n_class*: The number of classes. For GLUE tasks, there are only 2 classes (0 & 1)
 * *embed_type*: the type of embeddings (pool, last hidden, or weight)
+* *device*: use "cuda" or "cpu"
 
 # Results
 Note that task validation accuracy is limited due to the nature of the GLUE dataset. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLPs and TransformerClassifiers. The accuracy values may be better if using embeddings from LLMs.
