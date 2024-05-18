@@ -20,7 +20,8 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
 ## Original KAN (https://github.com/KindXiaoming/pykan)
 **The training takes a very long time when the model infers outputs with the input size 768 (outputs = KAN(texts)).** Therefore, we must reduce the embedding size from 768 to 8 (n_size*m_size) by this function (utils.py).
 
-```def reduce_size(embeddings, n_size = 1, m_size = 8):
+```
+def reduce_size(embeddings, n_size = 1, m_size = 8):
     second_dim = list(embeddings.shape)[-1]
     first_dim = list(embeddings.shape)[0]
     embeddings = torch.reshape(embeddings, (first_dim, int(second_dim/(n_size*m_size)), n_size*m_size))
