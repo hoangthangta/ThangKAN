@@ -1,4 +1,4 @@
-This repo is for using Kolmogorov-Arnold Networks (KANs) in text classification over GLUE tasks (WNLI, RTE, COLA, MRPC, etc). Our paper will be published in arXiv soon.
+This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GLUE tasks (WNLI, RTE, COLA, MRPC, etc). Our paper will be published in arXiv soon.
 
 # Requirements
 * Python >= 3.9
