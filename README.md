@@ -28,7 +28,8 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
     return embeddings
 ```
 
-Then, we can run:
+Then, we can run the training:
+
 ```python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --device "cpu"```
 
 ## Parameters
