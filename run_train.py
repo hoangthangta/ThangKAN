@@ -244,7 +244,10 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         if (val_accuracy > best_accuracy):
             best_accuracy = val_accuracy
             best_epoch = epoch
-            torch.save(model, output_path + '/' + saved_model_name)
+            if (network == 'kan'):
+                torch.save(model.state_dict(), output_path + '/' + saved_model_name)
+            else:
+                torch.save(model, output_path + '/' + saved_model_name)
         
         write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'epoch':epoch+1, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'best_accuracy': best_accuracy, 'best_epoch':best_epoch+1, 'val_loss': val_loss, 'train_loss':train_loss}, file_access = 'a')
           
@@ -277,9 +280,14 @@ def infer_model(test_loader, network = 'classifier', model_path = 'model.pth', n
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network in ['efficientkan', 'kan']):
+                elif(network == 'efficientkan'):
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
-                    outputs = model(texts)
+                    outputs = model(texts.to(device))
+                elif(network == 'kan'): 
+                    # embed_type always 'pool'
+                    texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = 'pool').to(device)
+                    texts = reduce_size(texts, n_size = n_size, m_size = m_size)
+                    outputs = model(texts.to(device)) 
                 else:
                     print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
             
