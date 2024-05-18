@@ -23,7 +23,7 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
 ```python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
 ## Parameters
-* *mode*: working mode (train or test)
+* *mode*: working mode ("train" or "test")
 * *network*: type of model (efficientkan, classifier, mlp)
 * *em_model_name*: the model offers embeddings (BERT)
 * *ds_name*: dataset name
@@ -37,7 +37,7 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
 * *device*: use "cuda" or "cpu"
 
 # Results
-Note that task validation accuracy is limited due to the nature of the GLUE dataset. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLPs and TransformerClassifiers. The accuracy values may be better if using embeddings from LLMs.
+Note that task validation accuracy is limited due to the nature of the GLUE datasets. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLPs and TransformerClassifiers. The accuracy values may be better if using embeddings from LLMs.
 
 ## WMLI (10 epochs)
 | Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
