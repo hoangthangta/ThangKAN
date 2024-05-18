@@ -2,7 +2,7 @@ from datasets import load_dataset
 from file_io import *
 from kan import KAN
 from models import EfficientKAN, TransformerClassifier, TransformerMLP
-from prettytable import PrettyTable
+
 from pathlib import Path
 #from sklearn.preprocessing import normalize
 from transformers import AutoModel, AutoTokenizer, get_linear_schedule_with_warmup
@@ -19,6 +19,8 @@ import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
+from utils import *
 
 def create_data_loader(ds_name, dataset, tokenizer, max_len = 512, batch_size = 4, shuffle = False):
 
@@ -106,19 +108,6 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
         return embeddings
 
 
-def count_parameters(model):
-    table = PrettyTable(["Modules", "Parameters"])
-    total_params = 0
-    for name, parameter in model.named_parameters():
-        if not parameter.requires_grad:
-            continue
-        params = parameter.numel()
-        table.add_row([name, params])
-        total_params += params
-    print(table)
-    print(f"Total Trainable Params: {total_params}")
-    return total_params
-
 def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc', em_model_name = 'bert-base-cased', \
                         epochs = 20, n_size = 1, m_size = 768, n_hidden = 64, n_class = 2, embed_type = 'pool'):
     """
@@ -140,7 +129,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     elif(network == 'kan'):
         # It takes a very long time to infer an output from the original KAN package
         model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
-        model.to(device)
+        #model.to(device)
     else:
         print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
     
@@ -192,11 +181,14 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network in ['efficientkan', 'kan']):
+                elif(network == 'efficientkan'):
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
-                    
                     outputs = model(texts.to(device))
-                    
+                elif(network == 'kan'): 
+                    # embed_type always 'pool'
+                    texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = 'pool').to(device)
+                    texts = reduce_size(texts, n_size = n_size, m_size = m_size)
+                    outputs = model(texts.to(device))              
                 else:
                     print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
 
@@ -298,7 +290,6 @@ def infer_model(test_loader, network = 'classifier', model_path = 'model.pth', n
 
 def prepare_dataset(ds_name = 'mrpc'):
     
-    dataset = []
     dataset = load_dataset('glue', ds_name)
     return dataset
 
@@ -371,4 +362,5 @@ if __name__ == "__main__":
     main(args)
     
 # ['rte', 'wnli', 'mrpc', 'cola']
-#python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "cola" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
+#python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --device "cpu"
+

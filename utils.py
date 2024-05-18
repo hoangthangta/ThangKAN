@@ -2,12 +2,11 @@ import torch
 from prettytable import PrettyTable
 
 def reduce_size(embeddings, n_size = 1, m_size = 8):
-    
-    em_len = len(embeddings) # length of embeddings
-    embeddings = torch.Tensor(embeddings)
-    embeddings = torch.reshape(embeddings, (n_size, int(em_len/m_size), m_size))
+    second_dim = list(embeddings.shape)[-1]
+    first_dim = list(embeddings.shape)[0]
+    embeddings = torch.reshape(embeddings, (first_dim, int(second_dim/(n_size*m_size)), n_size*m_size))
     embeddings = torch.sum(embeddings, (1), keepdim = True).squeeze()
-    return embeddings.tolist()
+    return embeddings
 
 def count_parameters(model):
     table = PrettyTable(["Modules", "Parameters"])
