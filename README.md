@@ -48,17 +48,17 @@ Then, we can reluctantly run the training:
 * *device*: use "cuda" or "cpu"
 
 # Results
-Note that task validation accuracy is limited due to the nature of the GLUE datasets. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLPs and TransformerClassifiers. The accuracy values may be better if using embeddings from LLMs.
+Note that task Test Accuracy is limited due to the nature of the GLUE datasets. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLPs and TransformerClassifiers. The accuracy values may be better if using embeddings from LLMs.
 
 ## WMLI (10 epochs)
-| Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
+| Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | EfficientKAN  |  0.5288 |   0.5648 | **202**  |
 | Classifier  |  **0.5414** |   0.5648 | 410  |
 | TransformerMLP  | 0.5335 |   0.5648 | 407  |
 
 ## MRPC (10 epochs)
-| Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
+| Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- |  ------------- |
 | EfficientKAN  |  **0.6782** |  0.6838 | **779**  |
 | Classifier  | 0.6712  |   0.6838 | 2015  |
@@ -66,14 +66,14 @@ Note that task validation accuracy is limited due to the nature of the GLUE data
 
 
 ## RTE (10 epochs)
-| Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
+| Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | EfficientKAN  |  **0.5248** |  **0.5428** | **547** |
 | Classifier  | 0.5016  |   0.5214 | 1379 |
 | TransformerMLP  | 0.5016 |   0.5214 | 1392 |
 
 ## COLA (5 epochs)
-| Network  | Best Training Accuracy | Validation Accuracy | Training time (seconds) |
+| Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | EfficientKAN  | **0.7083** | **0.6931** | **866** |
 | Classifier  | 0.6915  |   0.6912  | 2286 |
