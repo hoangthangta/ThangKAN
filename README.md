@@ -48,7 +48,7 @@ Then, we can reluctantly run the training:
 * *device*: use "cuda" or "cpu"
 
 # Results
-Note that task Test Accuracy is limited due to the nature of the GLUE datasets. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLPs and TransformerClassifiers. The accuracy values may be better if using embeddings from LLMs.
+Note that Test Accuracy is limited due to the nature of the GLUE datasets. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLPs and TransformerClassifiers. The accuracy values may be better if using embeddings from LLMs.
 
 ## WMLI (10 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
