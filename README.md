@@ -1,4 +1,4 @@
-This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GLUE tasks (WNLI, RTE, COLA, MRPC, etc). Our paper will be published in arXiv soon.
+This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GLUE tasks (WNLI, RTE, CoLA, MRPC, etc). Our paper will be published in arXiv soon.
 
 # Requirements
 * Python >= 3.9
@@ -72,7 +72,7 @@ Note that Test Accuracy is limited due to the nature of the GLUE datasets. Gener
 | Classifier  | 0.5016  |   0.5214 | 1379 |
 | TransformerMLP  | 0.5016 |   0.5214 | 1392 |
 
-## COLA (5 epochs)
+## CoLA (5 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | EfficientKAN  | **0.7083** | **0.6931** | **866** |
