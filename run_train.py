@@ -261,13 +261,13 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     
     write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'training time':end-start}, file_access = 'a')              
 
-def infer_model(testloader, network = 'classifier', model_path = 'model.pth', embed_type = 'pool', n_size = 1, m_size = 768):
+def infer_model(testloader, network = 'classifier', model_path = 'model.pth', embed_type = 'pool', n_size = 1, m_size = 768, n_hidden = 64, n_class = 2):
 
 
     if (network == 'kan'):
         model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
         model.load_state_dict(torch.load(model_path))
-        model.eval()
+        #model.eval()
     
     else:
    
@@ -307,7 +307,7 @@ def infer_model(testloader, network = 'classifier', model_path = 'model.pth', em
         test_loss /= len(testloader)
         test_accuracy /= len(testloader)
 
-    print(test_accuracy, test_loss)
+    print(f"Test Loss: {test_accuracy}, Test Accuracy: {test_loss}")
     return {'accuracy':test_accuracy, 'avg_loss':test_loss}
 
 def prepare_dataset(ds_name = 'mrpc'):
@@ -351,7 +351,7 @@ def main(args):
         loader = build_data_loader(ds_name = args.ds_name, em_model_name = args.em_model_name, max_len = args.max_len, batch_size = args.batch_size)
         
         # GLUE datasets have no "test set" with labels, so we use "validation set" instead.
-        infer_model(loader['validation'], network = args.network, model_path = args.model_path, embed_type = args.embed_type, n_size = args.n_size, m_size = args.m_size, n_class = args.n_class)
+        infer_model(loader['validation'], network = args.network, model_path = args.model_path, embed_type = args.embed_type, n_size = args.n_size, m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class)
         
        
 if __name__ == "__main__":
@@ -386,8 +386,8 @@ if __name__ == "__main__":
     
 # ['rte', 'wnli', 'mrpc', 'cola']
 #python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --device "cpu"
+#python run_train.py --mode "test" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --model_path "output/bert-base-cased/bert-base-cased_wnli_kan.pth" 
 
-#python run_train.py --mode "train" --network "efficient kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
-
-#python run_train.py --mode "test" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 n_size = 1, m_size = 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
+#python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
+#python run_train.py --mode "test" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
 
