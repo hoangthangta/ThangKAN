@@ -11,6 +11,9 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
 ## EfficientKAN (a modified version of https://github.com/Blealtan/efficient-kan)
 ```python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
+## FastKAN (https://github.com/ZiyaoLi/fast-kan/)
+```python run_train.py --mode "train" --network "fastkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
+
 ## TransformerMLP
 ```python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
