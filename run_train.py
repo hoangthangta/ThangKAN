@@ -1,6 +1,7 @@
 from datasets import load_dataset
 from file_io import *
-from models import EfficientKAN, TransformerClassifier, TransformerMLP, WrapKAN
+from kan import KAN
+from models import EfficientKAN, TransformerClassifier, TransformerMLP
 
 from pathlib import Path
 #from sklearn.preprocessing import normalize
@@ -112,7 +113,9 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     """
         for training classifier, efficientkan, and mlp
     """
+    
     start = time.time()
+    
     model = {}
     if (network == 'classifier'):
         model = TransformerClassifier(n_class, em_model_name)
@@ -124,9 +127,9 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         model = TransformerMLP(n_size*m_size, [n_hidden], n_class, em_model_name)
         model.to(device)
     elif(network == 'kan'):
-        # work better with device = "cpu"
-        model = WrapKAN(n_size*m_size, n_hidden, n_class, 5, 3, device) # grid=5, k=3
-        model.to(device)
+        # It takes a very long time to infer an output from the original KAN package
+        model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
+        #model.to(device)
     else:
         print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
     
@@ -241,9 +244,10 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         if (val_accuracy > best_accuracy):
             best_accuracy = val_accuracy
             best_epoch = epoch
-            #if (network == 'kan'):
-            #torch.save(model.state_dict(), output_path + '/' + saved_model_name)
-            torch.save(model, output_path + '/' + saved_model_name)
+            if (network == 'kan'):
+                torch.save(model.state_dict(), output_path + '/' + saved_model_name)
+            else:
+                torch.save(model, output_path + '/' + saved_model_name)
         
         write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'epoch':epoch+1, 'val_accuracy':val_accuracy, 'train_accuracy':train_accuracy, 'best_accuracy': best_accuracy, 'best_epoch':best_epoch+1, 'val_loss': val_loss, 'train_loss':train_loss}, file_access = 'a')
           
@@ -254,15 +258,23 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         gc.collect()
     
     end = time.time()
+    
     write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'training time':end-start}, file_access = 'a')              
 
 def infer_model(testloader, network = 'classifier', model_path = 'model.pth', embed_type = 'pool', n_size = 1, m_size = 768):
 
 
-    model = torch.load(model_path)
-    model.to(device)
-    model.eval()
-    print('model parameters: ', count_parameters(model))
+    if (network == 'kan'):
+        model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
+        model.load_state_dict(torch.load(model_path))
+        model.eval()
+    
+    else:
+   
+        model = torch.load(model_path)
+        model.to(device)
+        model.eval()
+        print('model parameters: ', count_parameters(model))
 
     criterion = nn.CrossEntropyLoss()
     test_loss = 0
