@@ -20,8 +20,8 @@ We use **bert-base-cased** as the pre-trained model for producing embeddings (po
 ## TransformerMLP
 ```python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
-## TransformerClassifier (with Dropout and Linear)
-```python run_train.py --mode "train" --network "classifier" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
+## TransformerTransformerClassifier (with Dropout and Linear)
+```python run_train.py --mode "train" --network "TransformerClassifier" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
 ## Original KAN (https://github.com/KindXiaoming/pykan)
 The training takes **a very long time** when the model infers outputs with an input size of 768 (outputs = KAN(texts)). Therefore, we must reduce the embedding size from 768 to 8 (n_size*m_size) by using reduce_size() in **utils.py**. The smaller the input size, the faster the training time.
@@ -41,7 +41,7 @@ Then, we can reluctantly run the training:
 
 ## Parameters
 * *mode*: working mode ("train" or "test")
-* *network*: type of model (efficientkan, classifier, mlp)
+* *network*: type of model (efficientkan, TransformerClassifier, mlp)
 * *em_model_name*: the model offers embeddings (BERT)
 * *ds_name*: dataset name
 * *epochs*: the number of epochs
@@ -54,13 +54,13 @@ Then, we can reluctantly run the training:
 * *device*: use "cuda" or "cpu"
 
 # Results
-Note that Test Accuracy is limited due to the nature of the GLUE datasets. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLPs and TransformerClassifiers. The accuracy values may be better if using embeddings from LLMs.
+Note that Test Accuracy is limited due to the nature of the GLUE datasets. Generally, KANs take less (a half) training time while keeping on-par accuracy compared to TransformerMLPs and TransformerTransformerClassifiers. The accuracy values may be better if using embeddings from LLMs.
 
 ## WMLI (10 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | EfficientKAN  |  0.5288 |   0.5648 | **202**  |
-| Classifier  |  **0.5414** |   0.5648 | 410  |
+| TransformerClassifier  |  **0.5414** |   0.5648 | 410  |
 | TransformerMLP  | 0.5335 |   0.5648 | 407  |
 | Original KAN  | 0.5209 |  **0.5925** | 4580  |
 | FastKAN  | - | - | - |
@@ -70,7 +70,7 @@ Note that Test Accuracy is limited due to the nature of the GLUE datasets. Gener
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- |  ------------- |
 | EfficientKAN  |  **0.6782** |  0.6838 | **779**  |
-| Classifier  | 0.6712  |   0.6838 | 2015  |
+| TransformerClassifier  | 0.6712  |   0.6838 | 2015  |
 | TransformerMLP  | 0.6744 |   0.6838 | 2012 |
 | FastKAN  | - | - | - |
 | FasterKAN  | - | - | - |
@@ -80,7 +80,7 @@ Note that Test Accuracy is limited due to the nature of the GLUE datasets. Gener
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | EfficientKAN  |  **0.5248** |  **0.5428** | **547** |
-| Classifier  | 0.5016  |   0.5214 | 1379 |
+| TransformerClassifier  | 0.5016  |   0.5214 | 1379 |
 | TransformerMLP  | 0.5016 |   0.5214 | 1392 |
 | FastKAN  | - | - | - |
 | FasterKAN  | - | - | - |
@@ -89,7 +89,7 @@ Note that Test Accuracy is limited due to the nature of the GLUE datasets. Gener
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | EfficientKAN  | **0.7083** | **0.6931** | **866** |
-| Classifier  | 0.6915  |   0.6912  | 2286 |
+| TransformerClassifier  | 0.6915  |   0.6912  | 2286 |
 | TransformerMLP  | 0.7043 |   0.6912 | 2299 |
 | FastKAN  | - | - | - |
 | FasterKAN  | - | - | - |
