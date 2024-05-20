@@ -62,7 +62,7 @@ Note that Test Accuracy is limited due to the nature of the GLUE datasets. Gener
 | EfficientKAN  |  0.5288 |   0.5648 | 202  |
 | TransformerClassifier  |  **0.5414** |   0.5648 | 410  |
 | TransformerMLP  | 0.5335 |   0.5648 | 407  |
-| Original KAN  | 0.5209 |  **0.5925** | 4580  |
+| Original KAN  | 0.5209 |  **0.5925** | 4580 (CPU)  |
 | FastKAN  | 0.5272 | 0.5648 | **191** |
 | FasterKAN  | - | - | - |
 
