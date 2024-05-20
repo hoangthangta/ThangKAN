@@ -1,7 +1,7 @@
 from datasets import load_dataset
 from file_io import *
 from kan import KAN
-from models import EfficientKAN, TransformerClassifier, TransformerMLP, FastKAN
+from models import EfficientKAN, TransformerClassifier, TransformerMLP, FastKAN, FasterKAN
 
 from pathlib import Path
 #from sklearn.preprocessing import normalize
@@ -133,6 +133,9 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     elif(network == 'fastkan'):
         model = FastKAN([n_size*m_size, n_hidden, n_class])  # grid=5, k=3
         model.to(device)
+    elif(network == 'fasterkan'):
+        model = FasterKAN([n_size*m_size, n_hidden, n_class])  # grid=5, k=3
+        model.to(device)
     else:
         print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
     
@@ -184,7 +187,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network in ['efficientkan', 'fastkan']):
+                elif(network in ['efficientkan', 'fastkan', 'fasterkan']):
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     outputs = model(texts.to(device))
                 elif(network == 'kan'): 
@@ -227,7 +230,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                         input_ids = items["input_ids"].to(device)
                         attention_mask = items["attention_mask"].to(device)
                         outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                    elif(network in ['efficientkan', 'fastkan']):
+                    elif(network in ['efficientkan', 'fastkan', 'fasterkan']):
                         texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                         outputs = model(texts.to(device))
                     elif(network == 'kan'): 
@@ -292,7 +295,7 @@ def infer_model(testloader, network = 'classifier', model_path = 'model.pth', em
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network in ['efficientkan', 'fastkan']):
+                elif(network in ['efficientkan', 'fastkan', 'fasterkan']):
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     outputs = model(texts.to(device))
                 elif(network == 'kan'): 
@@ -391,6 +394,6 @@ if __name__ == "__main__":
 #python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --device "cpu"
 #python run_train.py --mode "test" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --model_path "output/bert-base-cased/bert-base-cased_wnli_kan.pth" 
 
-#python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
+#python run_train.py --mode "train" --network "fasterkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
 #python run_train.py --mode "test" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
 
