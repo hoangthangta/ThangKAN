@@ -60,6 +60,7 @@ Note that Test Accuracy is limited due to the nature of the GLUE datasets. Gener
 | Classifier  |  **0.5414** |   0.5648 | 410  |
 | TransformerMLP  | 0.5335 |   0.5648 | 407  |
 | Original KAN  | 0.5209 |  **0.5925** | 4580  |
+| FastKAN  | - | - | - |
 
 ## MRPC (10 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
@@ -67,6 +68,7 @@ Note that Test Accuracy is limited due to the nature of the GLUE datasets. Gener
 | EfficientKAN  |  **0.6782** |  0.6838 | **779**  |
 | Classifier  | 0.6712  |   0.6838 | 2015  |
 | TransformerMLP  | 0.6744 |   0.6838 | 2012 |
+| FastKAN  | - | - | - |
 
 
 ## RTE (10 epochs)
@@ -75,6 +77,7 @@ Note that Test Accuracy is limited due to the nature of the GLUE datasets. Gener
 | EfficientKAN  |  **0.5248** |  **0.5428** | **547** |
 | Classifier  | 0.5016  |   0.5214 | 1379 |
 | TransformerMLP  | 0.5016 |   0.5214 | 1392 |
+| FastKAN  | - | - | - |
 
 ## CoLA (5 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
@@ -82,6 +85,7 @@ Note that Test Accuracy is limited due to the nature of the GLUE datasets. Gener
 | EfficientKAN  | **0.7083** | **0.6931** | **866** |
 | Classifier  | 0.6915  |   0.6912  | 2286 |
 | TransformerMLP  | 0.7043 |   0.6912 | 2299 |
+| FastKAN  | - | - | - |
 
 # References
 * https://github.com/Blealtan/efficient-kan
