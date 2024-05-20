@@ -7,4 +7,6 @@ from .fast_kan import (
     AttentionWithFastKANTransform,
 )
 
-__all__ = ["EfficientKANLinear", "EfficientKAN", "TransformerClassifier", "TransformerMLP", "FastKAN"]
+from .faster_kan import FasterKAN, FasterKANLayer, FasterKANvolver
+
+__all__ = ["EfficientKANLinear", "EfficientKAN", "TransformerClassifier", "TransformerMLP", "FastKAN", "FasterKAN"]
