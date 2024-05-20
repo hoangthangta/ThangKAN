@@ -1,7 +1,7 @@
 from datasets import load_dataset
 from file_io import *
 from kan import KAN
-from models import EfficientKAN, TransformerClassifier, TransformerMLP
+from models import EfficientKAN, TransformerClassifier, TransformerMLP, FastKAN
 
 from pathlib import Path
 #from sklearn.preprocessing import normalize
@@ -130,8 +130,11 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         # It takes a very long time to infer an output from the original KAN package
         model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
         #model.to(device)
+    elif(network == 'fastkan'):
+        model = FastKAN([n_size*m_size, n_hidden, n_class])  # grid=5, k=3
+        model.to(device)
     else:
-        print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
+        print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
     
     #count_parameters(model)    
     # define optimizer
@@ -181,7 +184,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network == 'efficientkan'):
+                elif(network in ['efficientkan', 'fastkan']):
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     outputs = model(texts.to(device))
                 elif(network == 'kan'): 
@@ -190,7 +193,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     texts = reduce_size(texts, n_size = n_size, m_size = m_size)
                     outputs = model(texts.to(device))              
                 else:
-                    print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
+                    print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
 
                 loss = criterion(outputs, labels.to(device))
                 train_loss += loss.item()
@@ -224,7 +227,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                         input_ids = items["input_ids"].to(device)
                         attention_mask = items["attention_mask"].to(device)
                         outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                    elif(network == 'efficientkan'):
+                    elif(network in ['efficientkan', 'fastkan']):
                         texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                         outputs = model(texts.to(device))
                     elif(network == 'kan'): 
@@ -233,7 +236,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                         texts = reduce_size(texts, n_size = n_size, m_size = m_size)
                         outputs = model(texts.to(device))     
                     else:
-                        print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
+                        print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
                     
                     val_loss += criterion(outputs, labels.to(device)).item()
                     val_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
@@ -289,7 +292,7 @@ def infer_model(testloader, network = 'classifier', model_path = 'model.pth', em
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network == 'efficientkan'):
+                elif(network in ['efficientkan', 'fastkan']):
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     outputs = model(texts.to(device))
                 elif(network == 'kan'): 
