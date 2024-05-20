@@ -261,23 +261,19 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     
     write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'training time':end-start}, file_access = 'a')              
 
-def infer_model(test_loader, network = 'classifier', model_path = 'model.pth', embed_type = 'pool', n_size = 1, m_size = 768):
+def infer_model(testloader, network = 'classifier', model_path = 'model.pth', embed_type = 'pool', n_size = 1, m_size = 768):
 
-    #model = TheModelClass(*args, **kwargs)
-    model = EfficientKAN([768, 64, 2])  # grid=5, k=3
-    #model.load_state_dict(torch.load(model_path))
-    #model.eval()
+
     model = torch.load(model_path)
-    #model.eval()
-    
-    #print('model parameters: ', count_parameters(model))
-    
-    #return
+    model.to(device)
+    model.eval()
+    print('model parameters: ', count_parameters(model))
+
     criterion = nn.CrossEntropyLoss()
     test_loss = 0
     test_accuracy = 0
     with torch.no_grad():
-        with tqdm(test_loader) as pbar:
+        with tqdm(testloader) as pbar:
             for i, items in enumerate(pbar):
                 labels = items['label']
                 
@@ -299,10 +295,10 @@ def infer_model(test_loader, network = 'classifier', model_path = 'model.pth', e
             
                 test_loss += criterion(outputs, labels.to(device)).item()
                 test_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
-                pbar.set_postfix(test_loss=test_loss.item(), test_accuracy=test_accuracy.item())
+                pbar.set_postfix(test_loss=test_loss/len(testloader), test_accuracy=test_accuracy/len(testloader))
 
-        test_loss /= len(test_loader)
-        test_accuracy /= len(test_loader)
+        test_loss /= len(testloader)
+        test_accuracy /= len(testloader)
 
     print(test_accuracy, test_loss)
     return {'accuracy':test_accuracy, 'avg_loss':test_loss}
@@ -348,7 +344,7 @@ def main(args):
         loader = build_data_loader(ds_name = args.ds_name, em_model_name = args.em_model_name, max_len = args.max_len, batch_size = args.batch_size)
         
         # GLUE datasets have no "test set" with labels, so we use "validation set" instead.
-        infer_model(loader['validation'], network = args.network, model_path = args.model_path, embed_type = args.embed_type, n_size = args.n_size, m_size = args.m_size)
+        infer_model(loader['validation'], network = args.network, model_path = args.model_path, embed_type = args.embed_type, n_size = args.n_size, m_size = args.m_size, n_class = args.n_class)
         
        
 if __name__ == "__main__":
@@ -386,5 +382,5 @@ if __name__ == "__main__":
 
 #python run_train.py --mode "train" --network "efficient kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
 
-#python run_train.py --mode "test" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512  --model_path "output/bert-base-cased/bert-base-cased_wnli_kan.pth" --embed_type "pool"
+#python run_train.py --mode "test" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 n_size = 1, m_size = 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
 
