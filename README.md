@@ -3,6 +3,7 @@ This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GL
 # Requirements
 * Python >= 3.9
 * Install pykan (https://github.com/KindXiaoming/pykan)
+* requirements.txt
 
 # Training
 
