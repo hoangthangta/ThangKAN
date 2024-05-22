@@ -170,11 +170,10 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     saved_model_history =  model_id + '_' +  ds_name + '_' + network + '.json'
     with open(os.path.join(output_path, saved_model_history), 'w') as fp: pass
     
-    
     for epoch in range(epochs):
         # train
         if (network != 'kan'): model.train()
-        em_model.train() 
+        em_model.eval()  # the embedding model only offers embeddings
         train_loss = 0
         train_accuracy = 0
         with tqdm(trainloader) as pbar:
@@ -216,7 +215,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         
         # validation
         if (network != 'kan'): model.eval()
-        em_model.eval() 
+        #em_model.eval() 
         val_loss = 0
         val_accuracy = 0
         
