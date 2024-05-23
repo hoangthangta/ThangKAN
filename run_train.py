@@ -5,7 +5,7 @@ from models import EfficientKAN, TransformerClassifier, TransformerMLP, FastKAN,
 
 from pathlib import Path
 #from sklearn.preprocessing import normalize
-from transformers import AutoModel, AutoTokenizer, get_linear_schedule_with_warmup
+from transformers import AutoModel, AutoTokenizer, get_linear_schedule_with_warmup, AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -18,7 +18,7 @@ import sys
 import time
 import torch
 import torch.nn as nn
-import torch.optim as optim
+#import torch.optim as optim
 
 from utils import *
 
@@ -30,7 +30,8 @@ def create_data_loader(ds_name, dataset, tokenizer, max_len = 512, batch_size = 
         text = ''
         if (ds_name in ['mrpc', 'rte', 'wnli']):
             # only for BERT, other models may have different special tokens
-            text = '[CLS] ' + item['sentence1'] + ' [SEP] ' + item['sentence2'] + ' [SEP]'
+            #text = '[CLS] ' + item['sentence1'] + ' [SEP] ' + item['sentence2'] + ' [SEP]'
+            text = item['sentence1'] + ' [SEP] ' + item['sentence2']
  
         if (ds_name == 'cola'):
             text = item['sentence']
@@ -80,10 +81,12 @@ class TextDataset():
 def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
     
     with torch.no_grad():
+        
         input_ids = data["input_ids"].to(device)
         attention_mask = data["attention_mask"].to(device)
 
         embeddings = {}
+        
         if (embed_type == 'hidden'): # last hidden state, 512 x 768 for BERT
             outputs = em_model(input_ids=input_ids, attention_mask=attention_mask)
             embeddings = outputs['last_hidden_state']
@@ -139,10 +142,9 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     else:
         print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
     
-    #count_parameters(model)    
     # define optimizer
     #optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    optimizer = optim.AdamW(model.parameters(), lr=1e-3) # 1e-5, 2e-5
+    optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=True) # 1e-5, 2e-5
     
     # define learning rate scheduler
     #scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
@@ -173,12 +175,11 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     for epoch in range(epochs):
         # train
         if (network != 'kan'): model.train()
-        em_model.eval()  # the embedding model only offers embeddings
         train_loss = 0
         train_accuracy = 0
         with tqdm(trainloader) as pbar:
             for i, items in enumerate(pbar):
-                optimizer.zero_grad()
+                
                 labels = items['label']
                 
                 outputs = {}
@@ -187,7 +188,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
                 elif(network in ['efficientkan', 'fastkan', 'fasterkan']):
-                    texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
+                    texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)      
                     outputs = model(texts.to(device))
                 elif(network == 'kan'): 
                     # embed_type always 'pool'
@@ -196,16 +197,20 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     outputs = model(texts.to(device))              
                 else:
                     print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
-
+                
                 loss = criterion(outputs, labels.to(device))
                 train_loss += loss.item()
+                
+                train_accuracy += (outputs.argmax(dim=1) == labels.to(device)).float().mean().item()
+                
                 loss.backward()
                 nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                 optimizer.step()
                 scheduler.step()
-
-                train_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
-                pbar.set_postfix(train_loss=train_loss/len(trainloader), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])     
+                optimizer.zero_grad()
+                
+                pbar.set_postfix(train_loss=train_loss/len(trainloader), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])    
+                
 
         train_loss /= len(trainloader)
         train_accuracy /= len(trainloader)
@@ -215,7 +220,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         
         # validation
         if (network != 'kan'): model.eval()
-        #em_model.eval() 
+        
         val_loss = 0
         val_accuracy = 0
         
@@ -243,6 +248,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     val_loss += criterion(outputs, labels.to(device)).item()
                     val_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
                     pbar.set_postfix(val_loss=val_loss/len(valloader), val_accuracy=val_accuracy/len(valloader))
+        
         val_loss /= len(valloader)
         val_accuracy /= len(valloader)
         
@@ -263,7 +269,6 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         gc.collect()
     
     end = time.time()
-    
     write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'training time':end-start}, file_access = 'a')              
 
 def infer_model(testloader, network = 'classifier', model_path = 'model.pth', embed_type = 'pool', n_size = 1, m_size = 768, n_hidden = 64, n_class = 2):
@@ -323,20 +328,21 @@ def prepare_dataset(ds_name = 'mrpc'):
 def build_data_loader(ds_name, em_model_name, max_len = 512, batch_size = 4, test_only = False):
     
     dataset = prepare_dataset(ds_name)
-    print('First example :', dataset['train'][0])
-    print('First example :', dataset['validation'][0])
+    print('First example :', dataset['train'][0], len(dataset['train']))
+    print('First example :', dataset['validation'][0], len(dataset['validation']))
     
     tokenizer = AutoTokenizer.from_pretrained(em_model_name)
     
     global em_model
     em_model = AutoModel.from_pretrained(em_model_name)
     em_model = em_model.to(device)
+    em_model.eval() 
     
     train_loader, val_loader, test_loader = [], [], []
     test_loader = create_data_loader(ds_name, dataset['test'], tokenizer, max_len = max_len, batch_size = batch_size)
     if (test_only == False):
         train_loader = create_data_loader(ds_name, dataset['train'], tokenizer, max_len = max_len, \
-                                            batch_size = batch_size, shuffle = False)
+                                            batch_size = batch_size, shuffle = True)
         val_loader = create_data_loader(ds_name, dataset['validation'], tokenizer, \
                                             max_len = max_len, batch_size = batch_size)
     
@@ -376,9 +382,9 @@ if __name__ == "__main__":
     parser.add_argument('--n_class', type=int, default=2)
     parser.add_argument('--embed_type', type=str, default='pool') # only for KAN
     parser.add_argument('--device', type=str, default='cuda')
-    '''parser.add_argument('--train_path', type=str, default='dataset/train.json') 
-    parser.add_argument('--test_path', type=str, default='dataset/test.json')
-    parser.add_argument('--val_path', type=str, default='dataset/val.json')'''
+    #parser.add_argument('--train_path', type=str, default='dataset/train.json') 
+    #parser.add_argument('--test_path', type=str, default='dataset/test.json')
+    #parser.add_argument('--val_path', type=str, default='dataset/val.json')
     parser.add_argument('--model_path', type=str, default='model.pth')
     args = parser.parse_args()
     
@@ -391,8 +397,8 @@ if __name__ == "__main__":
     
 # ['rte', 'wnli', 'mrpc', 'cola']
 #python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --device "cpu"
-#python run_train.py --mode "test" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --model_path "output/bert-base-cased/bert-base-cased_wnli_kan.pth" 
+#python run_train.py --mode "test" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 256 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --model_path "output/bert-base-cased/bert-base-cased_wnli_kan.pth" 
 
-#python run_train.py --mode "train" --network "fasterkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
+#python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
 #python run_train.py --mode "test" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
 
