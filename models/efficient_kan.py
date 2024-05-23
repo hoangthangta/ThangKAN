@@ -57,14 +57,12 @@ class EfficientKANLinear(torch.nn.Module):
 
     def reset_parameters(self):
         """ 
-            Both kaiming_uniform_ and xavier_uniform_ can be used for text classification, but we are not sure 
+            Both kaiming_uniform_ and xavier_uniform_ can use for text classification, but we are not sure 
             which one is better. kaiming_uniform_ was initially designed for image classification. 
             
-            Because SiLU, which shares some features with ReLU, is used for the activations, we chose kaiming_uniform_.
-            
-            We use the golden ratio as the scale step: (1 + math.sqrt(5))/2.
+            Because SiLU, which shares some features with ReLU is used as the activations, so we choose kaiming_uniform_.   
         """
-        torch.nn.init.kaiming_uniform_(self.base_weight, a=(1 + math.sqrt(5))/2 * self.scale_base)
+        torch.nn.init.kaiming_uniform_(self.base_weight, a=math.sqrt(5)*self.scale_base)
         #torch.nn.init.xavier_uniform_(self.base_weight, gain = ((1 + math.sqrt(5))/2) * self.scale_base)
         #torch.nn.init.constant_(self.base_weight, self.scale_base)
         with torch.no_grad():
@@ -84,7 +82,7 @@ class EfficientKANLinear(torch.nn.Module):
                 )
             )
             if self.enable_standalone_scale_spline:
-                torch.nn.init.kaiming_uniform_(self.spline_scaler, a=(1 + math.sqrt(5))/2 * self.scale_spline)
+                torch.nn.init.kaiming_uniform_(self.spline_scaler, a=math.sqrt(5)*self.scale_spline)
                 #torch.nn.init.xavier_uniform_(self.spline_scaler, gain = ((1 + math.sqrt(5))/2) * self.scale_spline)
                 #torch.nn.init.constant_(self.spline_scaler, self.scale_spline)
 
@@ -168,17 +166,20 @@ class EfficientKANLinear(torch.nn.Module):
     def forward(self, x: torch.Tensor):
         assert x.dim() == 2 and x.size(1) == self.in_features
         
+        # drop
+        base_output = self.drop(base_output)
+        spline_output = self.drop(spline_output)
+        
+        # linear
         base_output = F.linear(self.base_activation(x), self.base_weight)
         spline_output = F.linear(
             self.b_splines(x).view(x.size(0), -1),
             self.scaled_spline_weight.view(self.out_features, -1),
         )
 
-        # sigmoid and drop
+        # sigmoid
         #base_output = F.sigmoid(base_output)
         #spline_output = F.sigmoid(spline_output)
-        #base_output = self.drop(base_output)
-        #spline_output = self.drop(spline_output)
         
         return base_output + spline_output
 
