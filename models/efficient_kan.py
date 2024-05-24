@@ -52,8 +52,8 @@ class EfficientKANLinear(torch.nn.Module):
         self.base_activation = base_activation()
         self.grid_eps = grid_eps
         self.drop = torch.nn.Dropout(p=0.1) # dropout
-        
         self.reset_parameters()
+        
 
     def reset_parameters(self):
         """ 
@@ -164,24 +164,20 @@ class EfficientKANLinear(torch.nn.Module):
         )
 
     def forward(self, x: torch.Tensor):
-        assert x.dim() == 2 and x.size(1) == self.in_features
-        
-        # drop
-        base_output = self.drop(base_output)
-        spline_output = self.drop(spline_output)
-        
-        # linear
+        assert x.size(-1) == self.in_features
+        original_shape = x.shape
+        x = x.view(-1, self.in_features)
+
         base_output = F.linear(self.base_activation(x), self.base_weight)
         spline_output = F.linear(
             self.b_splines(x).view(x.size(0), -1),
             self.scaled_spline_weight.view(self.out_features, -1),
         )
-
-        # sigmoid
-        #base_output = F.sigmoid(base_output)
-        #spline_output = F.sigmoid(spline_output)
+        output = base_output + spline_output
+        output = output.view(*original_shape[:-1], self.out_features)
+        #output = self.drop(output) # drop
         
-        return base_output + spline_output
+        return output
 
     @torch.no_grad()
     def update_grid(self, x: torch.Tensor, margin=0.01):
@@ -273,7 +269,7 @@ class EfficientKAN(torch.nn.Module):
         self,
         layers_hidden,
         grid_size=5, # {3, 5, 10, 20, 50, 100, 200}
-        spline_order=3, # 
+        spline_order=3,  
         scale_noise=0.1,
         scale_base=1.0,
         scale_spline=1.0,
@@ -284,7 +280,7 @@ class EfficientKAN(torch.nn.Module):
         super(EfficientKAN, self).__init__()
         self.grid_size = grid_size
         self.spline_order = spline_order
-
+        #self.drop = torch.nn.Dropout(p=0.1) # dropout
         self.layers = torch.nn.ModuleList()
         for in_features, out_features in zip(layers_hidden, layers_hidden[1:]):
             self.layers.append(
@@ -311,10 +307,21 @@ class EfficientKAN(torch.nn.Module):
         self.grid_size = value
 
     def forward(self, x: torch.Tensor, update_grid = False):
+        
+        '''for i in range(len(self.layers)):
+            if update_grid:
+                self.layers[i].update_grid(x)
+            # drop before last layer
+            if (i == len(self.layers) - 1):
+                x = self.drop(x)
+            x = self.layers[i](x)'''
+        
         for layer in self.layers:
             if update_grid:
                 layer.update_grid(x)
+            #x = self.drop(x)
             x = layer(x)
+           
         return x
 
     def regularization_loss(self, regularize_activation=1.0, regularize_entropy=1.0):
