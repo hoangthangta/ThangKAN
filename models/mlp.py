@@ -6,6 +6,7 @@ class TransformerMLP(nn.Module):
     def __init__(self, input_size, hidden_sizes, output_size, model_name):
         super(TransformerMLP, self).__init__()
         self.model = AutoModel.from_pretrained(model_name) # BERT
+        self.drop = nn.Dropout(p=0.1) # dropout
         self.fc_layers = nn.ModuleList([nn.Linear(input_size, hidden_sizes[0])])
         for i in range(len(hidden_sizes) - 1):
             self.fc_layers.append(nn.Linear(hidden_sizes[i], hidden_sizes[i+1]))
@@ -16,5 +17,7 @@ class TransformerMLP(nn.Module):
         output = output[:, 0, :]  # Using [CLS] token representation
         for fc_layer in self.fc_layers:
             output = torch.relu(fc_layer(output))
+        
+        output = self.drop(output) # dropout
         output = self.output_layer(output)
         return output
