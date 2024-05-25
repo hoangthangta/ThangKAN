@@ -9,22 +9,22 @@ This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GL
 
 We use **bert-base-cased** as the pre-trained model for producing embeddings (pooled_outputs) in the training process. All models have 768 input size, 64 hidden neurons, and 2 output classes (0 & 1). The training was performed  on 10 epochs with lr = 2e-5.
 
-## EfficientKAN (a modified version of https://github.com/Blealtan/efficient-kan)
-```python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
+## TransformerEfficientKAN 
+```python run_train.py --mode "train" --network "trans_effi_kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
-## FastKAN (https://github.com/ZiyaoLi/fast-kan/)
-```python run_train.py --mode "train" --network "fastkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
+## TransformerFastKAN
+```python run_train.py --mode "train" --network "trans_fast_kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
-## FasterKAN (https://github.com/AthanasiosDelis/faster-kan)
-```python run_train.py --mode "train" --network "fasterkan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
+## TransformerFasterKAN
+```python run_train.py --mode "train" --network "trans_faster_kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
 ## TransformerMLP
 ```python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
-## TransformerTransformerClassifier (with Dropout and Linear)
+## TransformerClassifier (with Dropout and Linear)
 ```python run_train.py --mode "train" --network "TransformerClassifier" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"```
 
-## Original KAN (https://github.com/KindXiaoming/pykan)
+## Original KAN
 The training takes **a very long time** when the model infers outputs with an input size of 768 (outputs = KAN(texts)). Therefore, we must reduce the embedding size from 768 to 8 (n_size*m_size) by using reduce_size() in **utils.py**. The smaller the input size, the faster the training time.
 
 ```
@@ -55,7 +55,7 @@ Then, we can reluctantly run the training:
 * *device*: use "cuda" or "cpu"
 
 # Results
-Note that Test (Validation) Accuracy is limited due to the nature of the GLUE datasets. Generally, KANs take less (half) training time while maintaining on-par accuracy compared to TransformerMLPs and TransformerTransformerClassifiers. The accuracy values may be better if embeddings from LLMs are used.
+It's important to mention that WNLI inherently struggles to achieve high validation accuracy. Additionally, KANs face significant challenges in achieving convergence during text classification if they are not trained on top of BERT.
 
 ## WMLI (10 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
@@ -97,6 +97,8 @@ Note that Test (Validation) Accuracy is limited due to the nature of the GLUE da
 # References
 * https://github.com/Blealtan/efficient-kan
 * https://github.com/KindXiaoming/pykan
+* https://github.com/AthanasiosDelis/faster-kan
+* https://github.com/ZiyaoLi/fast-kan/
 
 # Contact
 If you have any questions, please contact: tahoangthang@gmail.com
