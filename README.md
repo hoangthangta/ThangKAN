@@ -60,39 +60,39 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 ## WMLI (10 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| EfficientKAN  |  -|   - | -  |
 | TransformerClassifier |  -|   - | -  |
 | TransformerMLP  |  -|   - | -  |
-| FastKAN  |  -|   - | -  |
-| FasterKAN  |  -|   - | -  |
+| TransformerEfficientKAN  |  -|   - | -  |
+| TransformerFastKAN  |  -|   - | -  |
+| TransformerFasterKAN  |  -|   - | -  |
 
 ## MRPC (10 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| EfficientKAN  |  -|   - | -  |
 | TransformerClassifier |  -|   - | -  |
 | TransformerMLP  |  -|   - | -  |
-| FastKAN  |  -|   - | -  |
-| FasterKAN  |  -|   - | -  |
+| TransformerEfficientKAN  |  -|   - | -  |
+| TransformerFastKAN  |  -|   - | -  |
+| TransformerFasterKAN  |  -|   - | -  |
 
 
 ## RTE (10 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| EfficientKAN  |  -|   - | -  |
 | TransformerClassifier |  -|   - | -  |
 | TransformerMLP  |  -|   - | -  |
-| FastKAN  |  -|   - | -  |
-| FasterKAN  |  -|   - | -  |
+| TransformerEfficientKAN  |  -|   - | -  |
+| TransformerFastKAN  |  -|   - | -  |
+| TransformerFasterKAN  |  -|   - | -  |
 
 ## CoLA (5 epochs)
 | Network  | Best Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| EfficientKAN  |  -|   - | -  |
 | TransformerClassifier |  -|   - | -  |
 | TransformerMLP  |  -|   - | -  |
-| FastKAN  |  -|   - | -  |
-| FasterKAN  |  -|   - | -  |
+| TransformerEfficientKAN  |  -|   - | -  |
+| TransformerFastKAN  |  -|   - | -  |
+| TransformerFasterKAN  |  -|   - | -  |
 
 # References
 * https://github.com/Blealtan/efficient-kan
