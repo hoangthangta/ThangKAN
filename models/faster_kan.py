@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from transformers import AutoModel
+
 import math
 from typing import *
 from torch.autograd import Function
@@ -132,6 +134,7 @@ class FasterKANLayer(nn.Module):
         self.layernorm = nn.LayerNorm(input_dim)
         self.rbf = ReflectionalSwitchFunction(grid_min, grid_max, num_grids, exponent, inv_denominator, train_grid, train_inv_denominator)
         self.spline_linear = SplineLinear(input_dim * num_grids, output_dim, spline_weight_init_scale)
+        #self.drop = nn.Dropout(p=0.1) # dropout
         #self.use_base_update = use_base_update
         #if use_base_update:
         #    self.base_activation = base_activation
@@ -146,7 +149,9 @@ class FasterKANLayer(nn.Module):
 
         #print("-------------------------")
         #ret = 0
+        
         ret = self.spline_linear(spline_basis)
+        #ret = self.drop(ret)
         #print("spline_basis.shape[:-2]:", spline_basis.shape[:-2])
         #print("*spline_basis.shape[:-2]:", *spline_basis.shape[:-2])
         #print("spline_basis.view(*spline_basis.shape[:-2], -1):", spline_basis.view(*spline_basis.shape[:-2], -1).shape)
@@ -158,6 +163,8 @@ class FasterKANLayer(nn.Module):
             #print("base:", base.shape)
             #print("@@@@@@@@@")
             #ret += base
+        
+        
         return ret
 
                 
@@ -220,6 +227,55 @@ class FasterKAN(nn.Module):
             x = layer(x)
         return x
 
+class TransformerFasterKAN(nn.Module):
+    def __init__(
+        self,
+        model_name,
+        layers_hidden: List[int],
+        grid_min: float = -1.2,
+        grid_max: float = 0.2,
+        num_grids: int = 8,
+        exponent: int = 2,
+        inv_denominator: float = 0.5,
+        train_grid: bool = False,        
+        train_inv_denominator: bool = False,
+        #use_base_update: bool = True,
+        base_activation = None,
+        spline_weight_init_scale: float = 1.0,
+    ) -> None:
+        super().__init__()
+        self.drop = torch.nn.Dropout(p=0.1) # dropout
+        self.model = AutoModel.from_pretrained(model_name)
+        self.layers = nn.ModuleList([
+            FasterKANLayer(
+                in_dim, out_dim,
+                grid_min=grid_min,
+                grid_max=grid_max,
+                num_grids=num_grids,
+                exponent = exponent,
+                inv_denominator = inv_denominator,
+                train_grid = train_grid ,
+                train_inv_denominator = train_inv_denominator,
+                #use_base_update=use_base_update,
+                base_activation=base_activation,
+                spline_weight_init_scale=spline_weight_init_scale,
+            ) for in_dim, out_dim in zip(layers_hidden[:-1], layers_hidden[1:])
+        ])
+        #print(f"FasterKAN layers_hidden[1:] shape: ", len(layers_hidden[1:]))   
+        #print(f"FasterKAN layers_hidden[:-1] shape: ", len(layers_hidden[:-1]))  
+        #print("FasterKAN zip shape: \n", *[(in_dim, out_dim) for in_dim, out_dim in zip(layers_hidden[:-1], layers_hidden[1:])]) 
+   
+        #print(f"FasterKAN self.faster_kan_layers shape: \n", len(self.layers))
+        #print(f"FasterKAN self.faster_kan_layers: \n", self.layers)
+    
+    def forward(self, input_ids, attention_mask):
+        _, x = self.model(input_ids=input_ids, attention_mask=attention_mask, return_dict=False)
+        for layer in self.layers:
+            #print("FasterKAN layer: \n", layer)
+            #print(f"FasterKAN x shape: {x.shape}")
+            x = layer(x)
+        #x = self.drop(x) # dropout
+        return x
 
 
 class BasicResBlock(nn.Module):

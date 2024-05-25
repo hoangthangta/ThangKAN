@@ -2,7 +2,12 @@
 
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 import math
+
+from transformers import AutoModel
+
+#from sklearn.preprocessing import normalize
 
 class EfficientKANLinear(torch.nn.Module):
     def __init__(
@@ -51,7 +56,6 @@ class EfficientKANLinear(torch.nn.Module):
         self.enable_standalone_scale_spline = enable_standalone_scale_spline
         self.base_activation = base_activation()
         self.grid_eps = grid_eps
-        self.drop = torch.nn.Dropout(p=0.1) # dropout
         self.reset_parameters()
         
 
@@ -165,18 +169,18 @@ class EfficientKANLinear(torch.nn.Module):
 
     def forward(self, x: torch.Tensor):
         assert x.size(-1) == self.in_features
+        
         original_shape = x.shape
         x = x.view(-1, self.in_features)
-
+        
         base_output = F.linear(self.base_activation(x), self.base_weight)
         spline_output = F.linear(
             self.b_splines(x).view(x.size(0), -1),
             self.scaled_spline_weight.view(self.out_features, -1),
         )
-        output = base_output + spline_output
+        output = spline_output + base_output
         output = output.view(*original_shape[:-1], self.out_features)
-        #output = self.drop(output) # drop
-        
+
         return output
 
     @torch.no_grad()
@@ -265,8 +269,7 @@ class EfficientKAN(torch.nn.Module):
         
     """ 
     def __init__(
-        
-        self,
+        self, 
         layers_hidden,
         grid_size=5, # {3, 5, 10, 20, 50, 100, 200}
         spline_order=3,  
@@ -280,7 +283,6 @@ class EfficientKAN(torch.nn.Module):
         super(EfficientKAN, self).__init__()
         self.grid_size = grid_size
         self.spline_order = spline_order
-        #self.drop = torch.nn.Dropout(p=0.1) # dropout
         self.layers = torch.nn.ModuleList()
         for in_features, out_features in zip(layers_hidden, layers_hidden[1:]):
             self.layers.append(
@@ -306,22 +308,84 @@ class EfficientKAN(torch.nn.Module):
     def grid_size1(self, value):
         self.grid_size = value
 
-    def forward(self, x: torch.Tensor, update_grid = False):
-        
-        '''for i in range(len(self.layers)):
-            if update_grid:
-                self.layers[i].update_grid(x)
-            # drop before last layer
-            if (i == len(self.layers) - 1):
-                x = self.drop(x)
-            x = self.layers[i](x)'''
-        
-        for layer in self.layers:
+    def forward(self, x, update_grid = False):
+        for layer in self.layers[:-1]:
             if update_grid:
                 layer.update_grid(x)
-            #x = self.drop(x)
             x = layer(x)
-           
+        return x
+
+    def regularization_loss(self, regularize_activation=1.0, regularize_entropy=1.0):
+        return sum(
+            layer.regularization_loss(regularize_activation, regularize_entropy)
+            for layer in self.layers
+        )
+
+class TransformerEfficientKAN(torch.nn.Module):
+    
+    """
+        From the paper: https://arxiv.org/pdf/2404.19756
+        
+        grid_size: The grid number G also has a subtle effect on interpretability. When G is too small, 
+        because each one of activation function is not very expressive, the network tends to use the ensembling 
+        strategy, making interpretation harder.
+        
+        spline_order: Of course, we can increase k to match the smoothness of functions, but too high k might be too oscillatory, 
+        leading to optimization issues.
+        
+    """ 
+    def __init__(
+        
+        self, 
+        model_name,
+        layers_hidden,
+        grid_size=5, # {3, 5, 10, 20, 50, 100, 200}
+        spline_order=3,  
+        scale_noise=0.1,
+        scale_base=1.0,
+        scale_spline=1.0,
+        base_activation=torch.nn.SiLU,
+        grid_eps=0.02,
+        grid_range=[-1, 1],
+    ):
+        super(TransformerEfficientKAN, self).__init__()
+        self.grid_size = grid_size
+        self.spline_order = spline_order
+        self.drop = torch.nn.Dropout(p=0.1) # dropout
+        self.model = AutoModel.from_pretrained(model_name)
+ 
+        self.layers = torch.nn.ModuleList()
+        for in_features, out_features in zip(layers_hidden, layers_hidden[1:]):
+            self.layers.append(
+                EfficientKANLinear(
+                    in_features,
+                    out_features,
+                    grid_size=grid_size,
+                    spline_order=spline_order,
+                    scale_noise=scale_noise,
+                    scale_base=scale_base,
+                    scale_spline=scale_spline,
+                    base_activation=base_activation,
+                    grid_eps=grid_eps,
+                    grid_range=grid_range,
+                )
+            )
+    
+    @property
+    def grid_size1(self):
+        return self.grid_size
+    
+    @grid_size1.setter
+    def grid_size1(self, value):
+        self.grid_size = value
+
+    def forward(self, input_ids, attention_mask, update_grid = False):
+        _, x = self.model(input_ids=input_ids, attention_mask=attention_mask, return_dict=False)
+        for layer in self.layers[:-1]:
+            if update_grid:
+                layer.update_grid(x)
+            x = layer(x)
+        #x = self.drop(x) # dropout
         return x
 
     def regularization_loss(self, regularize_activation=1.0, regularize_entropy=1.0):

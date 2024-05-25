@@ -1,12 +1,7 @@
-from .efficient_kan import EfficientKANLinear, EfficientKAN
+from .efficient_kan import EfficientKANLinear, EfficientKAN, TransformerEfficientKAN
 from .classifier import TransformerClassifier
 from .mlp import TransformerMLP
-from .fast_kan import (
-    FastKANLayer,
-    FastKAN,
-    AttentionWithFastKANTransform,
-)
+from .fast_kan import FastKANLayer, FastKAN, TransformerFastKAN, AttentionWithFastKANTransform
+from .faster_kan import FasterKAN, TransformerFasterKAN, FasterKANLayer, FasterKANvolver
 
-from .faster_kan import FasterKAN, FasterKANLayer, FasterKANvolver
-
-__all__ = ["EfficientKANLinear", "EfficientKAN", "TransformerClassifier", "TransformerMLP", "FastKAN", "FasterKAN"]
+__all__ = ["EfficientKAN", "TransformerEfficientKAN", "EfficientKANLinear", "TransformerClassifier", "TransformerMLP", "TransformerFastKAN", "FastKAN", "TransformerFasterKAN", "FasterKAN"]

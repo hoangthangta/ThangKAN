@@ -15,6 +15,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from transformers import AutoModel
+
 import math
 from typing import *
 
@@ -62,16 +64,24 @@ class FastKANLayer(nn.Module):
         if use_base_update:
             self.base_activation = base_activation
             self.base_linear = nn.Linear(input_dim, output_dim)
+        
+        self.drop = nn.Dropout(p=0.1) # dropout
 
     def forward(self, x, time_benchmark=False):
+    
+        
         if not time_benchmark:
             spline_basis = self.rbf(self.layernorm(x))
         else:
             spline_basis = self.rbf(x)
+
         ret = self.spline_linear(spline_basis.view(*spline_basis.shape[:-2], -1))
         if self.use_base_update:
             base = self.base_linear(self.base_activation(x))
             ret = ret + base
+        
+        # dropout
+        #ret = self.drop(ret)
         return ret
 
 
@@ -104,6 +114,39 @@ class FastKAN(nn.Module):
             x = layer(x)
         return x
 
+class TransformerFastKAN(nn.Module):
+    def __init__(
+        self,
+        model_name,
+        layers_hidden: List[int],
+        grid_min: float = -2.,
+        grid_max: float = 2.,
+        num_grids: int = 8,
+        use_base_update: bool = True,
+        base_activation = F.silu,
+        spline_weight_init_scale: float = 0.1,
+    ) -> None:
+        super().__init__()
+        self.drop = torch.nn.Dropout(p=0.1) # dropout
+        self.model = AutoModel.from_pretrained(model_name)
+        self.layers = nn.ModuleList([
+            FastKANLayer(
+                in_dim, out_dim,
+                grid_min=grid_min,
+                grid_max=grid_max,
+                num_grids=num_grids,
+                use_base_update=use_base_update,
+                base_activation=base_activation,
+                spline_weight_init_scale=spline_weight_init_scale,
+            ) for in_dim, out_dim in zip(layers_hidden[:-1], layers_hidden[1:])
+        ])
+
+    def forward(self, input_ids, attention_mask):
+        _, x = self.model(input_ids=input_ids, attention_mask=attention_mask, return_dict=False)
+        for layer in self.layers:
+            x = layer(x)
+        #x = self.drop(x) # dropout
+        return x
 
 class AttentionWithFastKANTransform(nn.Module):
     
