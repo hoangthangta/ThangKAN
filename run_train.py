@@ -1,7 +1,7 @@
 from datasets import load_dataset
 from file_io import *
 from kan import KAN
-from models import EfficientKAN, TransformerClassifier, TransformerMLP, FastKAN, FasterKAN
+from models import TransformerClassifier, TransformerMLP, EfficientKAN, FastKAN, FasterKAN, TransformerEfficientKAN, TransformerFastKAN, TransformerFasterKAN 
 
 from pathlib import Path
 #from sklearn.preprocessing import normalize
@@ -110,21 +110,23 @@ def get_embeddings(data, n_size = 1, m_size = 768, embed_type = 'pool'):
         del outputs, input_ids, attention_mask
         return embeddings
 
-
-def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc', em_model_name = 'bert-base-cased', \
+def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc', local_ds = False, em_model_name = 'bert-base-cased', \
                         epochs = 20, n_size = 1, m_size = 768, n_hidden = 64, n_class = 2, embed_type = 'pool'):
     """
         for training classifier, efficientkan, and mlp
     """
-    
+   
     start = time.time()
-    
+
     model = {}
     if (network == 'classifier'):
         model = TransformerClassifier(n_class, em_model_name)
         model.to(device)
-    elif(network == 'efficientkan'):
+    elif(network == 'effi_kan'):
         model = EfficientKAN([n_size*m_size, n_hidden, n_class])  # grid=5, k=3
+        model.to(device)
+    elif(network == 'trans_effi_kan'):
+        model = TransformerEfficientKAN(em_model_name, [n_size*m_size, n_hidden, n_class])  # grid=5, k=3
         model.to(device)
     elif(network == 'mlp'):
         model = TransformerMLP(n_size*m_size, [n_hidden], n_class, em_model_name)
@@ -133,18 +135,26 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         # It takes a very long time to infer an output from the original KAN package
         model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
         #model.to(device)
-    elif(network == 'fastkan'):
+    elif(network == 'fast_kan'):
         model = FastKAN([n_size*m_size, n_hidden, n_class])  # grid=5, k=3
         model.to(device)
-    elif(network == 'fasterkan'):
+    elif(network == 'trans_fast_kan'):
+        model = TransformerFastKAN(em_model_name, [n_size*m_size, n_hidden, n_class])  # grid=5, k=3
+        model.to(device)
+    elif(network == 'faster_kan'):
         model = FasterKAN([n_size*m_size, n_hidden, n_class])  # grid=5, k=3
+        model.to(device)
+    elif(network == 'trans_faster_kan'):
+        model = TransformerFasterKAN(em_model_name, [n_size*m_size, n_hidden, n_class])  # grid=5, k=3
         model.to(device)
     else:
         print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
     
-    # define optimizer
-    #optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=True) # 1e-5, 2e-5
+    # define learning and optimizer
+    lr = 2e-3
+    if ('trans' in network): lr = 2e-5 # Transformer
+    #optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    optimizer = AdamW(model.parameters(), lr=lr, correct_bias=True) # 2e-5
     
     # define learning rate scheduler
     #scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
@@ -157,21 +167,18 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         
     # define loss
     criterion = nn.CrossEntropyLoss()
-    
-    best_accuracy = 0
-    best_epoch = 0
-    
-    # create model saved name 
+
+    # create saved model name 
     model_id = ''
     try: model_id = em_model_name.split('/')[1]
     except: model_id = em_model_name 
-    
     output_path = 'output/' + model_id 
     Path(output_path).mkdir(parents=True, exist_ok=True)
     saved_model_name =  model_id + '_' +  ds_name + '_'+ network + '.pth'
     saved_model_history =  model_id + '_' +  ds_name + '_' + network + '.json'
     with open(os.path.join(output_path, saved_model_history), 'w') as fp: pass
     
+    best_accuracy, best_epoch = 0, 0
     for epoch in range(epochs):
         # train
         if (network != 'kan'): model.train()
@@ -179,16 +186,22 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         train_accuracy = 0
         with tqdm(trainloader) as pbar:
             for i, items in enumerate(pbar):
-                
-                labels = items['label']
+               
+                if (local_ds == True):
+                    labels = torch.Tensor(items['labels']).type(torch.LongTensor)
+                else:
+                    labels = items['label']
                 
                 outputs = {}
-                if (network in ['classifier', 'mlp']):
+                if (network in ['classifier', 'mlp'] or 'trans' in network):
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network in ['efficientkan', 'fastkan', 'fasterkan']):
-                    texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)      
+                elif(network in ['effi_kan', 'fast_kan', 'faster_kan']):
+                    if (local_ds == True):
+                        texts = torch.Tensor(items['embeddings'])
+                    else:
+                        texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     outputs = model(texts.to(device))
                 elif(network == 'kan'): 
                     # embed_type always 'pool'
@@ -196,11 +209,10 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     texts = reduce_size(texts, n_size = n_size, m_size = m_size)
                     outputs = model(texts.to(device))              
                 else:
-                    print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
+                    print("Please choose --network parameter as one of ('classifier', 'effi_kan', 'trans_effi_kan', 'fast_kan', 'trans_fast_kan', 'faster_kan', 'trans_faster_kan', 'kan', 'mlp')!")
                 
                 loss = criterion(outputs, labels.to(device))
                 train_loss += loss.item()
-                
                 train_accuracy += (outputs.argmax(dim=1) == labels.to(device)).float().mean().item()
                 
                 loss.backward()
@@ -208,10 +220,9 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad()
-                
+
                 pbar.set_postfix(train_loss=train_loss/len(trainloader), train_accuracy=train_accuracy/len(trainloader), lr=optimizer.param_groups[0]['lr'])    
                 
-
         train_loss /= len(trainloader)
         train_accuracy /= len(trainloader)
         
@@ -227,23 +238,29 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
         with torch.no_grad():
             with tqdm(valloader) as pbar:
                 for i, items in enumerate(pbar):
-                    labels = items['label']
+                    if (local_ds == True):
+                        labels = torch.Tensor(items['labels']).type(torch.LongTensor)
+                    else:
+                        labels = items['label']
                     
                     outputs = {}
-                    if (network in ['classifier', 'mlp']):
+                    if (network in ['classifier', 'mlp'] or 'trans' in network):
                         input_ids = items["input_ids"].to(device)
                         attention_mask = items["attention_mask"].to(device)
                         outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                    elif(network in ['efficientkan', 'fastkan', 'fasterkan']):
-                        texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
+                    elif(network in ['effi_kan', 'fast_kan', 'faster_kan']):
+                        if (local_ds == True):
+                            texts = torch.Tensor(items['embeddings'])
+                        else:
+                            texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                         outputs = model(texts.to(device))
                     elif(network == 'kan'): 
                         # embed_type always 'pool'
                         texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = 'pool').to(device)
                         texts = reduce_size(texts, n_size = n_size, m_size = m_size)
-                        outputs = model(texts.to(device))     
+                        outputs = model(texts.to(device))       
                     else:
-                        print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
+                        print("Please choose --network parameter as one of ('classifier', 'effi_kan', 'trans_effi_kan', 'fast_kan', 'trans_fast_kan', 'faster_kan', 'trans_faster_kan', 'kan', 'mlp')!")
                     
                     val_loss += criterion(outputs, labels.to(device)).item()
                     val_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
@@ -271,16 +288,13 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     end = time.time()
     write_single_dict_to_jsonl_file(output_path + '/' + saved_model_history, {'training time':end-start}, file_access = 'a')              
 
-def infer_model(testloader, network = 'classifier', model_path = 'model.pth', embed_type = 'pool', n_size = 1, m_size = 768, n_hidden = 64, n_class = 2):
-
+def infer_model(testloader, network = 'classifier', local_ds = False, model_path = 'model.pth', embed_type = 'pool', n_size = 1, m_size = 768, n_hidden = 64, n_class = 2):
 
     if (network == 'kan'):
         model = KAN(width=[n_size*m_size, n_hidden, n_class], grid=5, k=3, device = device)
         model.load_state_dict(torch.load(model_path))
         #model.eval()
-    
     else:
-   
         model = torch.load(model_path)
         model.to(device)
         model.eval()
@@ -292,23 +306,30 @@ def infer_model(testloader, network = 'classifier', model_path = 'model.pth', em
     with torch.no_grad():
         with tqdm(testloader) as pbar:
             for i, items in enumerate(pbar):
-                labels = items['label']
+                labels = []
+                if (local_ds == True):
+                    labels = torch.Tensor(items['labels']).type(torch.LongTensor)
+                else:
+                    labels = items['label']
                 
                 outputs = {}
-                if (network in ['classifier', 'mlp']):
+                if (network in ['classifier', 'mlp'] or 'trans' in network):
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network in ['efficientkan', 'fastkan', 'fasterkan']):
-                    texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
+                elif(network in ['effi_kan', 'fast_kan', 'faster_kan']):
+                    if (local_ds == True):
+                        texts = torch.Tensor(items['embeddings'])
+                    else:
+                        texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type).to(device)
                     outputs = model(texts.to(device))
                 elif(network == 'kan'): 
                     # embed_type always 'pool'
                     texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = 'pool').to(device)
                     texts = reduce_size(texts, n_size = n_size, m_size = m_size)
-                    outputs = model(texts.to(device)) 
+                    outputs = model(texts.to(device))     
                 else:
-                    print("Please choose --network parameter as one of ('classifier', efficientkan, 'mlp')!")
+                    print("Please choose --network parameter as one of ('classifier', 'effi_kan', 'trans_effi_kan', 'fast_kan', 'trans_fast_kan', 'faster_kan', 'trans_faster_kan', 'kan', 'mlp')!")
             
                 test_loss += criterion(outputs, labels.to(device)).item()
                 test_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
@@ -348,21 +369,58 @@ def build_data_loader(ds_name, em_model_name, max_len = 512, batch_size = 4, tes
     
     return {'train': train_loader, 'validation': val_loader, 'test': test_loader}
 
+def get_embeddings_ds(trainloader, valloader, testloader, ds_name = '', batch_size = 4, n_size = 1, m_size = 768, embed_type = 'pool'):
+
+    output_path = 'dataset/' + ds_name 
+    Path(output_path).mkdir(parents=True, exist_ok=True)
+    
+    with tqdm(trainloader) as pbar:
+        for i, items in enumerate(pbar):
+            texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type)
+            write_single_dict_to_jsonl_file('dataset/' + ds_name + '/train.json', {'embeddings':texts.tolist(), 'labels':items['label'].tolist()}, file_access = 'a')
+            del texts
+    
+    with tqdm(valloader) as pbar:
+        for i, items in enumerate(pbar):
+            texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type)
+            write_single_dict_to_jsonl_file('dataset/' + ds_name + '/val.json', {'embeddings':texts.tolist(), 'labels':items['label'].tolist()}, file_access = 'a')
+            del texts
+    
+    with tqdm(testloader) as pbar:
+        for i, items in enumerate(pbar):
+            texts = get_embeddings(items, n_size = n_size, m_size = m_size, embed_type = embed_type)
+            write_single_dict_to_jsonl_file('dataset/' + ds_name + '/test.json', {'embeddings':texts.tolist(), 'labels':items['label'].tolist()}, file_access = 'a')
+            del texts
+            
 def main(args):
     if (args.mode == 'train'):
-        loader = build_data_loader(ds_name = args.ds_name, em_model_name = args.em_model_name, \
-                                        max_len = args.max_len, batch_size = args.batch_size)
+        local_ds = (args.local_ds == 1)
+        
+        trainloader, valloader  = [],[]
+        if (local_ds == False):
+            loader = build_data_loader(ds_name = args.ds_name, em_model_name = args.em_model_name, \
+                                            max_len = args.max_len, batch_size = args.batch_size)
+            trainloader = loader['train']
+            valloader = loader['validation']
+        else:
+            trainloader = read_list_from_jsonl_file('dataset/' + args.ds_name + '/train.json')
+            valloader = read_list_from_jsonl_file('dataset/' + args.ds_name + '/val.json')
        
-        train_model(loader['train'], loader['validation'], network = args.network, ds_name = args.ds_name, \
+        train_model(trainloader, valloader, network = args.network, ds_name = args.ds_name, local_ds = local_ds, \
                     em_model_name = args.em_model_name, epochs = args.epochs, n_size = args.n_size, \
                     m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class, embed_type = args.embed_type)
-
-    elif (args.mode == 'test'):
+    
+    elif (args.mode == 'embeddings'):
+        loader = build_data_loader(ds_name = args.ds_name, em_model_name = args.em_model_name, \
+                                        max_len = args.max_len, batch_size = args.batch_size)
+        get_embeddings_ds(loader['train'], loader['validation'], loader['test'], ds_name = args.ds_name,  batch_size = args.batch_size, n_size = args.n_size, m_size = args.m_size, embed_type = args.embed_type)
         
+    elif (args.mode == 'test'):
+        local_ds = (args.local_ds == 1)
         loader = build_data_loader(ds_name = args.ds_name, em_model_name = args.em_model_name, max_len = args.max_len, batch_size = args.batch_size)
         
         # GLUE datasets have no "test set" with labels, so we use "validation set" instead.
-        infer_model(loader['validation'], network = args.network, model_path = args.model_path, embed_type = args.embed_type, n_size = args.n_size, m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class)
+        infer_model(loader['validation'], network = args.network, local_ds = local_ds, model_path = args.model_path, embed_type = args.embed_type, n_size = args.n_size, m_size = args.m_size, n_hidden = args.n_hidden, n_class = args.n_class)
         
        
 if __name__ == "__main__":
@@ -372,6 +430,8 @@ if __name__ == "__main__":
     parser.add_argument('--network', type=str, default='kan') # or classifier
     parser.add_argument('--em_model_name', type=str, default='bert-base-cased') # or test
     parser.add_argument('--ds_name', type=str, default='mrpc')
+    
+    parser.add_argument('--local_ds', type=int, default=0)
     parser.add_argument('--epochs', type=int, default=5)
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--max_len', type=int, default=512)
@@ -394,11 +454,21 @@ if __name__ == "__main__":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     main(args)
-    
-# ['rte', 'wnli', 'mrpc', 'cola']
-#python run_train.py --mode "train" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --device "cpu"
-#python run_train.py --mode "test" --network "kan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 256 --n_size 1 --m_size 8 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --model_path "output/bert-base-cased/bert-base-cased_wnli_kan.pth" 
 
-#python run_train.py --mode "train" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
-#python run_train.py --mode "test" --network "efficientkan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
+
+# dataset: ['rte', 'wnli', 'mrpc', 'cola']
+
+# TRAIN
+#python run_train.py --mode "train" --network "effi_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 3 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --local_ds 1
+
+#python run_train.py --mode "train" --network "trans_effi_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 3 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu"
+
+# INFER
+#python run_train.py --mode "test" --network "effi_kan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
+
+# GET EMBEDDINGS
+# python run_train.py --mode "embeddings" --em_model_name "bert-base-cased" --ds_name "mrpc" --batch_size 4 --max_len 512 --embed_type "pool" --device "cpu"
+
+
+
 
