@@ -65,7 +65,7 @@ class FastKANLayer(nn.Module):
             self.base_activation = base_activation
             self.base_linear = nn.Linear(input_dim, output_dim)
         
-        self.drop = nn.Dropout(p=0.1) # dropout
+        #self.drop = nn.Dropout(p=0.1) # dropout
 
     def forward(self, x, time_benchmark=False):
     
@@ -127,7 +127,7 @@ class TransformerFastKAN(nn.Module):
         spline_weight_init_scale: float = 0.1,
     ) -> None:
         super().__init__()
-        self.drop = torch.nn.Dropout(p=0.1) # dropout
+        #self.drop = torch.nn.Dropout(p=0.1) # dropout
         self.model = AutoModel.from_pretrained(model_name)
         self.layers = nn.ModuleList([
             FastKANLayer(

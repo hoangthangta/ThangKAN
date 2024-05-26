@@ -351,7 +351,7 @@ class TransformerEfficientKAN(torch.nn.Module):
         super(TransformerEfficientKAN, self).__init__()
         self.grid_size = grid_size
         self.spline_order = spline_order
-        self.drop = torch.nn.Dropout(p=0.1) # dropout
+        #self.drop = torch.nn.Dropout(p=0.1) # dropout
         self.model = AutoModel.from_pretrained(model_name)
  
         self.layers = torch.nn.ModuleList()

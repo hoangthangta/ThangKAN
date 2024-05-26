@@ -244,7 +244,7 @@ class TransformerFasterKAN(nn.Module):
         spline_weight_init_scale: float = 1.0,
     ) -> None:
         super().__init__()
-        self.drop = torch.nn.Dropout(p=0.1) # dropout
+        #self.drop = torch.nn.Dropout(p=0.1) # dropout
         self.model = AutoModel.from_pretrained(model_name)
         self.layers = nn.ModuleList([
             FasterKANLayer(
