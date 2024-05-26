@@ -1,7 +1,7 @@
 from datasets import load_dataset
 from file_io import *
 from kan import KAN
-from models import TransformerClassifier, TransformerMLP, EfficientKAN, FastKAN, FasterKAN, TransformerEfficientKAN, TransformerFastKAN, TransformerFasterKAN 
+from models import TransformerClassifier, TransformerMLP, EfficientKAN, FastKAN, FasterKAN, TransformerEfficientKAN, TransformerFastKAN, TransformerFasterKAN, EnsembleKAN, AE
 
 from pathlib import Path
 #from sklearn.preprocessing import normalize
@@ -147,12 +147,15 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     elif(network == 'trans_faster_kan'):
         model = TransformerFasterKAN(em_model_name, [n_size*m_size, n_hidden, n_class])  # grid=5, k=3
         model.to(device)
+    elif(network == 'ensemble_kan'):
+        model = EnsembleKAN(n_size*m_size, n_class)  # grid=5, k=3
+        model.to(device)
     else:
         print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
     
     # define learning and optimizer
     lr = 2e-3
-    if ('trans' in network): lr = 2e-5 # Transformer
+    if (network in ['classifier', 'mlp'] or 'trans' in network): lr = 2e-5 # Transformer
     #optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     optimizer = AdamW(model.parameters(), lr=lr, correct_bias=True) # 2e-5
     
@@ -197,7 +200,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network in ['effi_kan', 'fast_kan', 'faster_kan']):
+                elif(network in ['effi_kan', 'fast_kan', 'faster_kan', 'ensemble_kan']):
                     if (local_ds == True):
                         texts = torch.Tensor(items['embeddings'])
                     else:
@@ -248,7 +251,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                         input_ids = items["input_ids"].to(device)
                         attention_mask = items["attention_mask"].to(device)
                         outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                    elif(network in ['effi_kan', 'fast_kan', 'faster_kan']):
+                    elif(network in ['effi_kan', 'fast_kan', 'faster_kan', 'ensemble_kan']):
                         if (local_ds == True):
                             texts = torch.Tensor(items['embeddings'])
                         else:
@@ -317,7 +320,7 @@ def infer_model(testloader, network = 'classifier', local_ds = False, model_path
                     input_ids = items["input_ids"].to(device)
                     attention_mask = items["attention_mask"].to(device)
                     outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                elif(network in ['effi_kan', 'fast_kan', 'faster_kan']):
+                elif(network in ['effi_kan', 'fast_kan', 'faster_kan', 'ensemble_kan']):
                     if (local_ds == True):
                         texts = torch.Tensor(items['embeddings'])
                     else:
@@ -459,9 +462,9 @@ if __name__ == "__main__":
 # dataset: ['rte', 'wnli', 'mrpc', 'cola']
 
 # TRAIN
-#python run_train.py --mode "train" --network "trans_effi_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 5 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --local_ds 1
+#python run_train.py --mode "train" --network "ensemble_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --local_ds 1
 
-#python run_train.py --mode "train" --network "trans_fast_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 3 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu"
+#python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu"
 
 # INFER
 #python run_train.py --mode "test" --network "effi_kan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
