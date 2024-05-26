@@ -1,4 +1,4 @@
-declare -a arr1=("mlp" "classifier" "trans_ensemble_kan)
+declare -a arr1=("mlp" "classifier")
 declare -a arr2=("mrpc" "rte" "cola" "wnli")
 for i in "${arr1[@]}"; do for j in "${arr2[@]}";
 do
