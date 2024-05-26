@@ -99,12 +99,12 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | ------------- | ------------- |  ------------- | ------------- |
 | TransformerClassifier |  -|   - | -  |
 | TransformerMLP  |  -|   - | -  |
-| TransformerEfficientKAN  |  -|   - | -  |
-| TransformerFastKAN  |  -|   - | -  |
-| TransformerFasterKAN  |  -|   - | -  |
-| EfficientKAN  |  -|   - | -  |
-| FastKAN  |  -|   - | -  |
-| FasterKAN  |  -|   - | -  |
+| TransformerEfficientKAN  |  0.9968 |   0.8301 | 3651  |
+| TransformerFastKAN  |  0.9957 |   0.8358 | 3566  |
+| TransformerFasterKAN  |  0.9913 |  0.8109 | 3852  |
+| EfficientKAN  |  0.7487 |   0.7512 | 1051 |
+| FastKAN  |  0.7483 |  0.7420 |  1090 |
+| FasterKAN  | 0.7300 |   0.7286 | 1080  |
 
 # References
 * https://github.com/Blealtan/efficient-kan
