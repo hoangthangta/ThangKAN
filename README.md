@@ -62,12 +62,12 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | ------------- | ------------- |  ------------- | ------------- |
 | TransformerClassifier |  -|   - | -  |
 | TransformerMLP  |  -|   - | -  |
-| TransformerEfficientKAN  |  - |   0.8301 | 3651  |
-| TransformerFastKAN  |  - |   0.8358 | 3566  |
-| TransformerFasterKAN  |  - |  0.8109 | 3852  |
-| EfficientKAN  |  - |   0.7512 | 1051 |
-| FastKAN  |  - |  0.7420 |  1090 |
-| FasterKAN  | - |   0.7286 | 1080  |
+| TransformerEfficientKAN  |  0.9952 |   0.8301 | 3651  |
+| TransformerFastKAN  |  0.9755 |   0.8358 | 3566  |
+| TransformerFasterKAN  | 0.9846 |  0.8109 | 3852  |
+| EfficientKAN  | 0.7512 |   0.7487  | 1051 |
+| FastKAN  |  0.7483 |  0.7420 |  1090 |
+| FasterKAN  | 0.7300 |   0.7286 | 1080  |
 
 ## MRPC (10 epochs)
 | Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
