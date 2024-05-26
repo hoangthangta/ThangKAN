@@ -459,9 +459,9 @@ if __name__ == "__main__":
 # dataset: ['rte', 'wnli', 'mrpc', 'cola']
 
 # TRAIN
-#python run_train.py --mode "train" --network "effi_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 3 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --local_ds 1
+#python run_train.py --mode "train" --network "trans_effi_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 5 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --local_ds 1
 
-#python run_train.py --mode "train" --network "trans_effi_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 3 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu"
+#python run_train.py --mode "train" --network "trans_fast_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 3 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu"
 
 # INFER
 #python run_train.py --mode "test" --network "effi_kan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
