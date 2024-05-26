@@ -381,7 +381,7 @@ class TransformerEfficientKAN(torch.nn.Module):
 
     def forward(self, input_ids, attention_mask, update_grid = False):
         _, x = self.model(input_ids=input_ids, attention_mask=attention_mask, return_dict=False)
-        for layer in self.layers[:-1]:
+        for layer in self.layers:
             if update_grid:
                 layer.update_grid(x)
             x = layer(x)
