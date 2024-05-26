@@ -57,17 +57,17 @@ Then, we can reluctantly run the training:
 # Results
 It's important to mention that WNLI inherently struggles to achieve high validation accuracy. Additionally, KANs face significant challenges in achieving convergence during text classification if they are not trained on top of BERT.
 
-## WMLI (10 epochs)
+## CoLA (10 epochs)
 | Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | TransformerClassifier |  -|   - | -  |
 | TransformerMLP  |  -|   - | -  |
-| TransformerEfficientKAN  |  -|   - | -  |
-| TransformerFastKAN  |  -|   - | -  |
-| TransformerFasterKAN  |  -|   - | -  |
-| EfficientKAN  |  -|   - | -  |
-| FastKAN  |  -|   - | -  |
-| FasterKAN  |  -|   - | -  |
+| TransformerEfficientKAN  |  - |   0.8301 | 3651  |
+| TransformerFastKAN  |  - |   0.8358 | 3566  |
+| TransformerFasterKAN  |  - |  0.8109 | 3852  |
+| EfficientKAN  |  - |   0.7512 | 1051 |
+| FastKAN  |  - |  0.7420 |  1090 |
+| FasterKAN  | - |   0.7286 | 1080  |
 
 ## MRPC (10 epochs)
 | Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
@@ -81,7 +81,6 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | FastKAN  |  -|   - | -  |
 | FasterKAN  |  -|   - | -  |
 
-
 ## RTE (10 epochs)
 | Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
@@ -94,17 +93,17 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | FastKAN  |  -|   - | -  |
 | FasterKAN  |  -|   - | -  |
 
-## CoLA (10 epochs)
+## WMLI (10 epochs)
 | Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | TransformerClassifier |  -|   - | -  |
 | TransformerMLP  |  -|   - | -  |
-| TransformerEfficientKAN  |  - |   0.8301 | 3651  |
-| TransformerFastKAN  |  - |   0.8358 | 3566  |
-| TransformerFasterKAN  |  - |  0.8109 | 3852  |
-| EfficientKAN  |  - |   0.7512 | 1051 |
-| FastKAN  |  - |  0.7420 |  1090 |
-| FasterKAN  | - |   0.7286 | 1080  |
+| TransformerEfficientKAN  |  -|   - | -  |
+| TransformerFastKAN  |  -|   - | -  |
+| TransformerFasterKAN  |  -|   - | -  |
+| EfficientKAN  |  -|   - | -  |
+| FastKAN  |  -|   - | -  |
+| FasterKAN  |  -|   - | -  |
 
 # References
 * https://github.com/Blealtan/efficient-kan
