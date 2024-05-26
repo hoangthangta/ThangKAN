@@ -77,9 +77,9 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | TransformerEfficientKAN  |  -|   - | -  |
 | TransformerFastKAN  |  -|   - | -  |
 | TransformerFasterKAN  |  -|   - | -  |
-| EfficientKAN  |  -|   - | -  |
-| FastKAN  |  -|   - | -  |
-| FasterKAN  |  -|   - | -  |
+| EfficientKAN  |  0.6856 |   0.7181 | 448  |
+| FastKAN  |  0.6949 |   0.7083 | 4xx |
+| FasterKAN  |  0.6881 |   0.7107 | 462  |
 
 ## RTE (10 epochs)
 | Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
