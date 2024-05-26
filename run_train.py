@@ -1,7 +1,7 @@
 from datasets import load_dataset
 from file_io import *
 from kan import KAN
-from models import TransformerClassifier, TransformerMLP, EfficientKAN, FastKAN, FasterKAN, TransformerEfficientKAN, TransformerFastKAN, TransformerFasterKAN
+from models import TransformerClassifier, TransformerMLP, EfficientKAN, FastKAN, FasterKAN, TransformerEfficientKAN, TransformerFastKAN, TransformerFasterKAN, TransformerEnsembleKAN
 
 from pathlib import Path
 #from sklearn.preprocessing import normalize
@@ -147,9 +147,9 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
     elif(network == 'trans_faster_kan'):
         model = TransformerFasterKAN(em_model_name, [n_size*m_size, n_hidden, n_class])  # grid=5, k=3
         model.to(device)
-    '''elif(network == 'ensemble_kan'):
-        model = EnsembleKAN(n_size*m_size, n_class)  # grid=5, k=3
-        model.to(device)'''
+    elif(network == 'trans_ensemble_kan'):
+        model = TransformerEnsembleKAN([n_size*m_size, n_hidden, n_class], em_model_name)  # grid=5, k=3
+        model.to(device)
     else:
         print("Please choose --network parameter as one of ('classifier', 'efficientkan', 'fastkan', 'kan', 'mlp')!")
     
@@ -212,7 +212,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                     texts = reduce_size(texts, n_size = n_size, m_size = m_size)
                     outputs = model(texts.to(device))              
                 else:
-                    print("Please choose --network parameter as one of ('classifier', 'effi_kan', 'trans_effi_kan', 'fast_kan', 'trans_fast_kan', 'faster_kan', 'trans_faster_kan', 'kan', 'mlp')!")
+                    print("Please choose --network parameter as one of ('classifier', 'effi_kan', 'trans_effi_kan', 'fast_kan', 'trans_fast_kan', 'faster_kan', 'trans_faster_kan', 'trans_ensemble_kan', 'kan', 'mlp')!")
                 
                 loss = criterion(outputs, labels.to(device))
                 train_loss += loss.item()
@@ -263,7 +263,7 @@ def train_model(trainloader, valloader, network = 'classifier', ds_name = 'mrpc'
                         texts = reduce_size(texts, n_size = n_size, m_size = m_size)
                         outputs = model(texts.to(device))       
                     else:
-                        print("Please choose --network parameter as one of ('classifier', 'effi_kan', 'trans_effi_kan', 'fast_kan', 'trans_fast_kan', 'faster_kan', 'trans_faster_kan', 'kan', 'mlp')!")
+                        print("Please choose --network parameter as one of ('classifier', 'effi_kan', 'trans_effi_kan', 'fast_kan', 'trans_fast_kan', 'faster_kan', 'trans_faster_kan', 'trans_ensemble_kan', 'kan', 'mlp')!")
                     
                     val_loss += criterion(outputs, labels.to(device)).item()
                     val_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
@@ -332,7 +332,7 @@ def infer_model(testloader, network = 'classifier', local_ds = False, model_path
                     texts = reduce_size(texts, n_size = n_size, m_size = m_size)
                     outputs = model(texts.to(device))     
                 else:
-                    print("Please choose --network parameter as one of ('classifier', 'effi_kan', 'trans_effi_kan', 'fast_kan', 'trans_fast_kan', 'faster_kan', 'trans_faster_kan', 'kan', 'mlp')!")
+                    print("Please choose --network parameter as one of ('classifier', 'effi_kan', 'trans_effi_kan', 'fast_kan', 'trans_fast_kan', 'faster_kan', 'trans_faster_kan', 'trans_ensemble_kan', 'kan', 'mlp')!")
             
                 test_loss += criterion(outputs, labels.to(device)).item()
                 test_accuracy += ((outputs.argmax(dim=1) == labels.to(device)).float().mean().item())
@@ -464,7 +464,7 @@ if __name__ == "__main__":
 # TRAIN
 #python run_train.py --mode "train" --network "trans_effi_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool" --device "cpu" --local_ds 1
 
-#python run_train.py --mode "train" --network "mlp" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
+#python run_train.py --mode "train" --network "trans_ensemble_kan" --em_model_name "bert-base-cased" --ds_name "mrpc" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2 --embed_type "pool"
 
 # INFER
 #python run_train.py --mode "test" --network "effi_kan" --em_model_name "bert-base-cased" --ds_name "wnli" --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --embed_type "pool" --model_path "output/bert-base-cased/bert-base-cased_wnli_efficientkan.pth" 
