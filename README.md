@@ -112,5 +112,5 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 * https://github.com/ZiyaoLi/fast-kan/
 
 # Contact
-If you have any questions, please contact: tahoangthang@gmail.com.
+If you have any questions, please contact: tahoangthang@gmail.com. If you want to know more about me, please visit website: https://tahoangthang.com.
 
