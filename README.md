@@ -58,52 +58,52 @@ Then, we can reluctantly run the training:
 It's important to mention that WNLI inherently struggles to achieve high validation accuracy. Additionally, KANs face significant challenges in achieving convergence during text classification if they are not trained on top of BERT.
 
 ## CoLA (10 epochs)
-| Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
+| Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| TransformerClassifier |  -|   - | -  |
-| TransformerMLP  |  -|   - | -  |
-| TransformerEfficientKAN  |  0.9952 |   0.8301 | 3651  |
-| TransformerFastKAN  |  0.9755 |   0.8358 | 3566  |
-| TransformerFasterKAN  | 0.9846 |  0.8109 | 3852  |
-| EfficientKAN  | 0.7512 |   0.7487  | 1051 |
-| FastKAN  |  0.7483 |  0.7420 |  1090 |
-| FasterKAN  | 0.7300 |   0.7286 | 1080  |
+| mlp | 0.9897 | 0.8282 | 2798 |
+| classifier | 0.9619 | 0.8282 | 2802 |
+| trans_effi_kan | 0.9635 | 0.8292 | 2827 |
+| trans_fast_kan | 0.9949 | 0.8206 | 2831 |
+| trans_faster_kan | 0.9756 | 0.8215 | 2818 |
+| effi_kan | 0.749 | 0.7458 | 951 |
+| fast_kan | 0.7501 | 0.742 | 937 |
+| faster_kan | 0.7235 | 0.7315 | 924 |
 
 ## MRPC (10 epochs)
-| Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
+| Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| TransformerClassifier |  -|   - | -  |
-| TransformerMLP  |  -|   - | -  |
-| TransformerEfficientKAN  |  -|   - | -  |
-| TransformerFastKAN  |  0.9880 |   0.8602 | 1558  |
-| TransformerFasterKAN  |  0.9372 |  0.8553 | 1658  |
-| EfficientKAN  |  0.6856 |   0.7181 | 448  |
-| FastKAN  |  - |   - | - |
-| FasterKAN  |  0.6881 |   0.7107 | 462  |
+| mlp | 0.7377 | 0.8603 | 1195 |
+| classifier | 0.9866 | 0.8848 | 1204 |
+| trans_effi_kan | 0.9986 | 0.8676 | 1219 |
+| trans_fast_kan | 0.9422 | 0.8554 | 1214 |
+| trans_faster_kan | 0.9591 | 0.8701 | 1207 |
+| effi_kan | 0.6955 | 0.7255 | 407 |
+| fast_kan | 0.7009 | 0.7157 | 401 |
+| faster_kan | 0.6848 | 0.7059 | 395 |
 
 ## RTE (10 epochs)
-| Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
+| Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| TransformerClassifier |  -|   - | -  |
-| TransformerMLP  |  -|   - | -  |
-| TransformerEfficientKAN  |  -|   - | -  |
-| TransformerFastKAN  |  -|   - | -  |
-| TransformerFasterKAN  |  -|   - | -  |
-| EfficientKAN  |  -|   - | -  |
-| FastKAN  |  -|   - | -  |
-| FasterKAN  |  -|   - | -  |
+| mlp | 0.9302 | 0.675 | 821 |
+| classifier | 0.8475 | 0.625 | 818 |
+| trans_effi_kan | 0.9069 | 0.675 | 826 |
+| trans_fast_kan | 0.9394 | 0.6071 | 831 |
+| trans_faster_kan | 0.9639 | 0.6964 | 829 |
+| effi_kan | 0.5004 | 0.5214 | 277 |
+| fast_kan | 0.5269 | 0.5429 | 273 |
+| faster_kan | 0.496 | 0.5214 | 269 |
 
-## WMLI (10 epochs)
-| Network  | Training Accuracy | Test Accuracy | Training time (seconds) |
+## WNLI (10 epochs)
+| Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| TransformerClassifier |  -|   - | -  |
-| TransformerMLP  |  -|   - | -  |
-| TransformerEfficientKAN  |  -|   - | -  |
-| TransformerFastKAN  |  -|   - | -  |
-| TransformerFasterKAN  |  -|   - | -  |
-| EfficientKAN  |  -|   - | -  |
-| FastKAN  |  -|   - | -  |
-| FasterKAN  |  -|   - | -  |
+| mlp | 0.9302 | 0.675 | 821 |
+| classifier | 0.8475 | 0.625 | 818 |
+| trans_effi_kan | 0.9069 | 0.675 | 826 |
+| trans_fast_kan | 0.9394 | 0.6071 | 831 |
+| trans_faster_kan | 0.9639 | 0.6964 | 829 |
+| effi_kan | 0.5004 | 0.5214 | 277 |
+| fast_kan | 0.5269 | 0.5429 | 273 |
+| faster_kan | 0.496 | 0.5214 | 269 |
 
 # References
 * https://github.com/Blealtan/efficient-kan
