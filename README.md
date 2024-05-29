@@ -62,7 +62,7 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | ------------- | ------------- |  ------------- | ------------- |
 | mlp | 0.9897 | 0.8282 | 2798 |
 | classifier | 0.9619 | 0.8282 | 2802 |
-| trans_effi_kan | 0.9635 | 0.8292 | 2827 |
+| trans_effi_kan | 0.9635 | **0.8292** | 2827 |
 | trans_fast_kan | 0.9949 | 0.8206 | 2831 |
 | trans_faster_kan | 0.9756 | 0.8215 | 2818 |
 | effi_kan | 0.749 | 0.7458 | 951 |
@@ -73,7 +73,7 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | mlp | 0.7377 | 0.8603 | 1195 |
-| classifier | 0.9866 | 0.8848 | 1204 |
+| classifier | 0.9866 | **0.8848** | 1204 |
 | trans_effi_kan | 0.9986 | 0.8676 | 1219 |
 | trans_fast_kan | 0.9422 | 0.8554 | 1214 |
 | trans_faster_kan | 0.9591 | 0.8701 | 1207 |
@@ -88,7 +88,7 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | classifier | 0.8475 | 0.625 | 818 |
 | trans_effi_kan | 0.9069 | 0.675 | 826 |
 | trans_fast_kan | 0.9394 | 0.6071 | 831 |
-| trans_faster_kan | 0.9639 | 0.6964 | 829 |
+| trans_faster_kan | 0.9639 | **0.6964** | 829 |
 | effi_kan | 0.5004 | 0.5214 | 277 |
 | fast_kan | 0.5269 | 0.5429 | 273 |
 | faster_kan | 0.496 | 0.5214 | 269 |
@@ -96,14 +96,14 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 ## WNLI (10 epochs)
 | Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| mlp | 0.9302 | 0.675 | 821 |
-| classifier | 0.8475 | 0.625 | 818 |
-| trans_effi_kan | 0.9069 | 0.675 | 826 |
-| trans_fast_kan | 0.9394 | 0.6071 | 831 |
-| trans_faster_kan | 0.9639 | 0.6964 | 829 |
-| effi_kan | 0.5004 | 0.5214 | 277 |
-| fast_kan | 0.5269 | 0.5429 | 273 |
-| faster_kan | 0.496 | 0.5214 | 269 |
+| mlp | 0.5058 | 0.5648 | 213 |
+| classifier | 0.5204 | 0.5648 | 210 |
+| trans_effi_kan | 0.4182 | 0.5648 | 212 |
+| trans_fast_kan | 0.5252 | 0.5648 | 211 |
+| trans_faster_kan | 0.4832 | 0.5648 | 211 |
+| effi_kan | 0.5147 | 0.5648 | 73 |
+| fast_kan | 0.5372 | 0.5648 | 72 |
+| faster_kan | 0.501 | 0.5648 | 71 |
 
 # References
 * https://github.com/Blealtan/efficient-kan
