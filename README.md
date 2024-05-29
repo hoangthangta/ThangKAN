@@ -7,7 +7,7 @@ This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GL
 
 # Training
 
-We use **bert-base-cased** as the pre-trained model for producing embeddings (pooled_outputs) in the training process. All models have 768 input size, 64 hidden neurons, and 2 output classes (0 & 1). The training was performed  on xx epochs with lr = 2e-5.
+We use **bert-base-cased** as the pre-trained model for producing embeddings (pooled_outputs) in the training process. All models have 768 input size, 64 hidden neurons, and 2 output classes (0 & 1). The training was performed on 10 epochs with lr = 2e-5 for all transformer models, other models use lr = 2e - 3.
 
 ## TransformerEfficientKAN 
 ```python run_train.py --mode "train" --network "trans_effi_kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2```
@@ -94,7 +94,6 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | faster_kan | 0.496 | 0.5214 | 269 |
 
 ## WNLI (10 epochs)
-Note that the nature of WNLI makes it get stuck during training.
 
 | Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
