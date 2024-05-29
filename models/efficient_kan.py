@@ -284,6 +284,7 @@ class EfficientKAN(torch.nn.Module):
         self.grid_size = grid_size
         self.spline_order = spline_order
         self.layers = torch.nn.ModuleList()
+        self.drop = torch.nn.Dropout(p=0.1) # dropout
         for in_features, out_features in zip(layers_hidden, layers_hidden[1:]):
             self.layers.append(
                 EfficientKANLinear(
@@ -309,9 +310,10 @@ class EfficientKAN(torch.nn.Module):
         self.grid_size = value
 
     def forward(self, x: torch.Tensor, update_grid=False):
-        for layer in self.layers: # self.layers[:-1]
+        for layer in self.layers: 
             if update_grid:
                 layer.update_grid(x)
+            x = self.drop(x) # dropout
             x = layer(x)
         return x
         
@@ -351,10 +353,9 @@ class TransformerEfficientKAN(torch.nn.Module):
         super(TransformerEfficientKAN, self).__init__()
         self.grid_size = grid_size
         self.spline_order = spline_order
-        self.drop = torch.nn.Dropout(p=0.1) # dropout
-        self.model = AutoModel.from_pretrained(model_name)
- 
         self.layers = torch.nn.ModuleList()
+        #self.drop = torch.nn.Dropout(p=0.1) # dropout
+        self.model = AutoModel.from_pretrained(model_name)
         for in_features, out_features in zip(layers_hidden, layers_hidden[1:]):
             self.layers.append(
                 EfficientKANLinear(
@@ -381,7 +382,7 @@ class TransformerEfficientKAN(torch.nn.Module):
 
     def forward(self, input_ids, attention_mask, update_grid = False):
         _, x = self.model(input_ids=input_ids, attention_mask=attention_mask, return_dict=False)
-        x = self.drop(x) # dropout
+        #x = self.drop(x) # dropout
         for layer in self.layers: # self.layers[:-1]
             if update_grid:
                 layer.update_grid(x)

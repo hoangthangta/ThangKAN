@@ -143,8 +143,8 @@ class TransformerFastKAN(nn.Module):
 
     def forward(self, input_ids, attention_mask):
         _, x = self.model(input_ids=input_ids, attention_mask=attention_mask, return_dict=False)
-        x = self.drop(x) # dropout
         for layer in self.layers:
+            x = self.drop(x) # dropout
             x = layer(x)
         return x
 
