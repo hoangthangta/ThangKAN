@@ -1,4 +1,4 @@
-This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GLUE tasks (WNLI, RTE, CoLA, MRPC, etc). Our paper will be published in arXiv soon.
+This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GLUE tasks (RTE, CoLA, MRPC, etc). Our paper will be published in arXiv soon.
 
 # Requirements
 * Python >= 3.9.7
@@ -55,7 +55,6 @@ Then, we can reluctantly run the training:
 * *device*: use "cuda" or "cpu"
 
 # Results
-It's important to mention that WNLI inherently struggles to achieve high validation accuracy. Additionally, KANs face significant challenges in achieving convergence during text classification if they are not trained on top of BERT.
 
 ## CoLA (10 epochs)
 | Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
@@ -92,19 +91,6 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | effi_kan | 0.5004 | 0.5214 | 277 |
 | fast_kan | 0.5269 | 0.5429 | 273 |
 | faster_kan | 0.496 | 0.5214 | 269 |
-
-## WNLI (10 epochs)
-
-| Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
-| ------------- | ------------- |  ------------- | ------------- |
-| mlp | 0.5058 | 0.5648 | 213 |
-| classifier | 0.5204 | 0.5648 | 210 |
-| trans_effi_kan | 0.4182 | 0.5648 | 212 |
-| trans_fast_kan | 0.5252 | 0.5648 | 211 |
-| trans_faster_kan | 0.4832 | 0.5648 | 211 |
-| effi_kan | 0.5147 | 0.5648 | 73 |
-| fast_kan | 0.5372 | 0.5648 | 72 |
-| faster_kan | 0.501 | 0.5648 | 71 |
 
 # References
 * https://github.com/Blealtan/efficient-kan
