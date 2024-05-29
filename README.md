@@ -1,13 +1,13 @@
 This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GLUE tasks (WNLI, RTE, CoLA, MRPC, etc). Our paper will be published in arXiv soon.
 
 # Requirements
-* Python >= 3.9
+* Python >= 3.9.7
 * Install pykan (https://github.com/KindXiaoming/pykan)
 * requirements.txt
 
 # Training
 
-We use **bert-base-cased** as the pre-trained model for producing embeddings (pooled_outputs) in the training process. All models have 768 input size, 64 hidden neurons, and 2 output classes (0 & 1). The training was performed on Tesla V100 16GB, 10 epochs, lr = 2e-5 for all transformer models, and lr = 2e - 3 for other models.
+We use **bert-base-cased** as the pre-trained model for producing embeddings (pooled_outputs) in the training process. All models have 768 input size, 64 hidden neurons, and 2 output classes (0 & 1). The training was performed on Tesla V100 16GB, 10 epochs, lr = 2e-5 for all transformer models, and lr = 2e-3 for other models.
 
 ## TransformerEfficientKAN 
 ```python run_train.py --mode "train" --network "trans_effi_kan" --em_model_name "bert-base-cased" --ds_name "wnli" --epochs 10 --batch_size 4 --max_len 512 --n_size 1 --m_size 768 --n_hidden 64 --n_class 2```
