@@ -94,6 +94,8 @@ It's important to mention that WNLI inherently struggles to achieve high validat
 | faster_kan | 0.496 | 0.5214 | 269 |
 
 ## WNLI (10 epochs)
+Note that the nature of WNLI makes it get stuck during training.
+
 | Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
 | mlp | 0.5058 | 0.5648 | 213 |
