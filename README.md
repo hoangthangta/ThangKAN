@@ -59,8 +59,8 @@ Then, we can reluctantly run the training:
 ## CoLA (10 epochs)
 | Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| mlp | 0.9897 | 0.8282 | 2798 |
-| classifier | 0.9619 | 0.8282 | 2802 |
+| trans_mlp | 0.9897 | 0.8282 | 2798 |
+| trans_classifier | 0.9619 | 0.8282 | 2802 |
 | trans_effi_kan | 0.9635 | **0.8292** | 2827 |
 | trans_fast_kan | 0.9949 | 0.8206 | 2831 |
 | trans_faster_kan | 0.9756 | 0.8215 | 2818 |
@@ -71,8 +71,8 @@ Then, we can reluctantly run the training:
 ## MRPC (10 epochs)
 | Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| mlp | 0.7377 | 0.8603 | 1195 |
-| classifier | 0.9866 | **0.8848** | 1204 |
+| trans_mlp | 0.7377 | 0.8603 | 1195 |
+| trans_classifier | 0.9866 | **0.8848** | 1204 |
 | trans_effi_kan | 0.9986 | 0.8676 | 1219 |
 | trans_fast_kan | 0.9422 | 0.8554 | 1214 |
 | trans_faster_kan | 0.9591 | 0.8701 | 1207 |
@@ -83,8 +83,8 @@ Then, we can reluctantly run the training:
 ## RTE (10 epochs)
 | Network  | Training Accuracy | Val Accuracy | Training time (seconds) |
 | ------------- | ------------- |  ------------- | ------------- |
-| mlp | 0.9302 | 0.675 | 821 |
-| classifier | 0.8475 | 0.625 | 818 |
+| trans_mlp | 0.9302 | 0.675 | 821 |
+| trans_classifier | 0.8475 | 0.625 | 818 |
 | trans_effi_kan | 0.9069 | 0.675 | 826 |
 | trans_fast_kan | 0.9394 | 0.6071 | 831 |
 | trans_faster_kan | 0.9639 | **0.6964** | 829 |
