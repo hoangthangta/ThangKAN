@@ -1,3 +1,5 @@
+**Keep in mind: KANs may not be proper for text classification, at least in our research. Extra experiments must be conducted to prove this.**
+
 This repo uses Kolmogorov-Arnold Networks (KANs) for text classification over GLUE tasks (RTE, CoLA, MRPC, etc). Our paper will be published in arXiv soon.
 
 # Requirements
